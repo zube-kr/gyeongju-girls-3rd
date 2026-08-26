@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026 경주여자중학교 3학년 과학 교실</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --night:#141B34;
+    --night-deep:#0A0F22;
+    --night-mid:#1C2544;
+    --panel:#1A2140;
+    --panel-line:#2C365E;
+    --star:#E8C468;
+    --star-soft:#F3DFA0;
+    --text:#EDEFF7;
+    --text-soft:#9DA5C4;
+    --ok:#6FCF97;
+  }
+  *{box-sizing:border-box;}
+  [hidden]{ display:none !important; }
+  html,body{height:100%;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:var(--night-deep);
+    color:var(--text);
+    font-family:'Noto Sans KR',sans-serif;
+    line-height:1.6;
+    position:relative;
+    overflow-x:hidden;
+  }
+
+  /* ── 우주 배경: 별 + 성운 + 은하 ── */
+  .space-bg{
+    position:fixed; inset:0; z-index:-2;
+    background:
+      radial-gradient(ellipse 80% 60% at 15% 8%, #2A3A6E55 0%, transparent 60%),
+      radial-gradient(ellipse 70% 55% at 90% 15%, #4A2E5E4d 0%, transparent 55%),
+      radial-gradient(ellipse 90% 70% at 50% 100%, #1B3A4A55 0%, transparent 60%),
+      linear-gradient(180deg, var(--night-deep) 0%, var(--night) 55%, var(--night-deep) 100%);
+  }
+  .stars, .stars-2{
+    position:fixed; inset:0; z-index:-1; pointer-events:none;
+  }
+  .stars{
+    background-image:
+      radial-gradient(1.6px 1.6px at 8% 12%, var(--star-soft) 99%, transparent),
+      radial-gradient(1.2px 1.2px at 22% 30%, #fff 99%, transparent),
+      radial-gradient(1.6px 1.6px at 35% 8%, var(--star-soft) 99%, transparent),
+      radial-gradient(1px 1px at 48% 22%, #fff 99%, transparent),
+      radial-gradient(1.4px 1.4px at 62% 40%, var(--star-soft) 99%, transparent),
+      radial-gradient(1px 1px at 75% 12%, #fff 99%, transparent),
+      radial-gradient(1.6px 1.6px at 85% 28%, var(--star-soft) 99%, transparent),
+      radial-gradient(1.2px 1.2px at 93% 55%, #fff 99%, transparent),
+      radial-gradient(1.4px 1.4px at 12% 55%, var(--star-soft) 99%, transparent),
+      radial-gradient(1px 1px at 28% 68%, #fff 99%, transparent),
+      radial-gradient(1.6px 1.6px at 44% 78%, var(--star-soft) 99%, transparent),
+      radial-gradient(1.2px 1.2px at 58% 62%, #fff 99%, transparent),
+      radial-gradient(1.4px 1.4px at 70% 85%, var(--star-soft) 99%, transparent),
+      radial-gradient(1px 1px at 82% 70%, #fff 99%, transparent),
+      radial-gradient(1.6px 1.6px at 95% 90%, var(--star-soft) 99%, transparent),
+      radial-gradient(1px 1px at 5% 88%, #fff 99%, transparent);
+    background-repeat:repeat;
+    background-size:100% 100%;
+    opacity:.85;
+    animation:twinkle 5s ease-in-out infinite alternate;
+  }
+  .stars-2{
+    background-image:
+      radial-gradient(1px 1px at 18% 20%, #fff 99%, transparent),
+      radial-gradient(1px 1px at 40% 46%, #fff 99%, transparent),
+      radial-gradient(1px 1px at 66% 18%, #fff 99%, transparent),
+      radial-gradient(1px 1px at 80% 50%, #fff 99%, transparent),
+      radial-gradient(1px 1px at 30% 82%, #fff 99%, transparent),
+      radial-gradient(1px 1px at 90% 80%, #fff 99%, transparent);
+    opacity:.5;
+    animation:twinkle 3.2s ease-in-out infinite alternate-reverse;
+  }
+  @keyframes twinkle{ from{opacity:.35;} to{opacity:.95;} }
+
+  a{ color:inherit; }
+
+  header.hero{
+    padding:56px 24px 34px;
+    text-align:center;
+    position:relative;
+  }
+  .hero-orbit{
+    width:110px; height:110px; margin:0 auto 18px;
+    position:relative;
+  }
+  .hero-orbit svg{ width:100%; height:100%; display:block; }
+
+  .eyebrow{
+    font-size:12.5px; letter-spacing:.16em; color:var(--star);
+    text-transform:uppercase; margin-bottom:10px; font-weight:700;
+  }
+  h1{
+    font-family:'Noto Serif KR',serif;
+    font-size:clamp(24px,4.2vw,34px);
+    margin:0 0 10px;
+    font-weight:700;
+  }
+  header.hero p{ color:var(--text-soft); max-width:52ch; margin:0 auto; font-size:14.5px;}
+
+  main.layout{
+    max-width:980px; margin:0 auto; padding:10px 20px 90px;
+    display:grid;
+    grid-template-columns:250px 1fr;
+    gap:20px;
+    align-items:start;
+  }
+  @media (max-width:720px){
+    main.layout{ grid-template-columns:1fr; }
+  }
+
+  nav.unit-nav{
+    background:var(--panel);
+    border:1px solid var(--panel-line);
+    border-radius:14px;
+    padding:10px;
+    display:flex; flex-direction:column; gap:4px;
+    position:sticky; top:16px;
+  }
+  @media (max-width:720px){
+    nav.unit-nav{
+      position:static;
+      flex-direction:row; overflow-x:auto;
+      gap:8px;
+    }
+  }
+  nav.unit-nav button{
+    all:unset;
+    cursor:pointer;
+    padding:12px 14px;
+    border-radius:9px;
+    font-size:13.5px;
+    color:var(--text-soft);
+    white-space:nowrap;
+    transition:background .15s, color .15s;
+  }
+  nav.unit-nav button:hover{ background:#232C52; color:var(--text); }
+  nav.unit-nav button.active{
+    background:linear-gradient(90deg, #2B3568, #232C52);
+    color:var(--star-soft);
+    font-weight:700;
+    box-shadow:inset 0 0 0 1px #3A447A;
+  }
+  nav.unit-nav button .roman{
+    display:inline-block; width:26px; color:var(--star);
+    font-weight:700; font-family:'Noto Serif KR',serif;
+  }
+
+  section.content-panel{
+    background:var(--panel);
+    border:1px solid var(--panel-line);
+    border-radius:14px;
+    padding:26px 24px;
+    min-height:320px;
+  }
+
+  .welcome{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; min-height:280px; gap:10px; color:var(--text-soft);
+  }
+  .welcome .big-star{ font-size:34px; }
+  .welcome h2{ font-family:'Noto Serif KR',serif; color:var(--text); margin:0; font-size:19px;}
+
+  .unit-header{
+    display:flex; align-items:baseline; gap:10px; margin-bottom:18px;
+    padding-bottom:14px; border-bottom:1px solid var(--panel-line);
+  }
+  .unit-header .roman{ color:var(--star); font-family:'Noto Serif KR',serif; font-size:22px; font-weight:700;}
+  .unit-header h2{ margin:0; font-size:19px; font-family:'Noto Serif KR',serif; }
+
+  ol.item-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; }
+  ol.item-list li{
+    display:flex; align-items:center; gap:14px;
+    background:#151B38; border:1px solid var(--panel-line);
+    border-radius:10px; padding:14px 16px;
+  }
+  ol.item-list .num{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:26px; height:26px; border-radius:50%; flex:none;
+    background:var(--night-deep); color:var(--star); font-size:13px; font-weight:700;
+    border:1px solid var(--panel-line);
+  }
+  ol.item-list .info{ flex:1; min-width:0; }
+  ol.item-list .info .title{ font-weight:700; font-size:14.5px; margin-bottom:3px; }
+  ol.item-list .info .desc{ font-size:12.5px; color:var(--text-soft); }
+  .go-btn{
+    all:unset; cursor:pointer;
+    background:var(--star); color:#2A2308;
+    font-weight:700; font-size:12.5px;
+    padding:8px 14px; border-radius:8px; flex:none;
+    transition:background .15s;
+  }
+  .go-btn:hover{ background:var(--star-soft); }
+
+  .empty-note{
+    text-align:center; color:var(--text-soft); font-size:13.5px;
+    padding:50px 10px; display:flex; flex-direction:column; align-items:center; gap:8px;
+  }
+  .empty-note .icon{ font-size:26px; opacity:.7; }
+
+  .back-btn{
+    all:unset; cursor:pointer; display:none;
+    color:var(--text-soft); font-size:13px; margin-bottom:14px;
+  }
+  @media (max-width:720px){
+    .back-btn{ display:inline-block; }
+  }
+
+  footer{ text-align:center; color:var(--text-soft); font-size:12px; padding:0 20px 40px; }
+</style>
+</head>
+<body>
+
+<div class="space-bg"></div>
+<div class="stars"></div>
+<div class="stars-2"></div>
+
+<header class="hero">
+  <div class="hero-orbit">
+    <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="60" cy="60" rx="52" ry="18" fill="none" stroke="#3E5C99" stroke-width="1.2" opacity=".7" transform="rotate(-18 60 60)"/>
+      <ellipse cx="60" cy="60" rx="40" ry="40" fill="none" stroke="#2C365E" stroke-width="1"/>
+      <circle cx="60" cy="60" r="16" fill="#E8C468"/>
+      <circle cx="60" cy="60" r="16" fill="url(#g)" opacity=".5"/>
+      <circle cx="108" cy="46" r="3" fill="#F3DFA0"/>
+      <circle cx="16" cy="78" r="2.3" fill="#fff"/>
+      <defs>
+        <radialGradient id="g" cx="50%" cy="35%" r="65%">
+          <stop offset="0%" stop-color="#F3DFA0"/>
+          <stop offset="100%" stop-color="#E8C468" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+    </svg>
+  </div>
+  <div class="eyebrow">2026 · 경주여자중학교</div>
+  <h1>3학년 과학 교실</h1>
+  <p>단원을 선택하면 학습지 목록이 열립니다. 특히 Ⅶ. 별과 우주 단원의 라이브 워크시트를 확인해 보세요.</p>
+</header>
+
+<main class="layout">
+  <nav class="unit-nav" id="unitNav"></nav>
+
+  <section class="content-panel">
+    <button class="back-btn" id="backBtn">← 단원 목록</button>
+    <div id="welcome" class="welcome">
+      <div class="big-star">★</div>
+      <h2>왼쪽에서 단원을 선택하세요</h2>
+      <p style="margin:0;">단원을 누르면 그 단원의 학습 자료 목록이 여기에 나타납니다.</p>
+    </div>
+    <div id="unitView" hidden>
+      <div class="unit-header">
+        <span class="roman" id="unitRoman"></span>
+        <h2 id="unitTitle"></h2>
+      </div>
+      <div id="unitBody"></div>
+    </div>
+  </section>
+</main>
+
+<footer>© 2026 경주여자중학교 과학 교실 · 학생 제출 답안은 선생님이 확인 후 개별 피드백을 남깁니다.</footer>
+
+<script>
+  const UNITS = [
+    { roman:"Ⅰ", title:"화학 반응의 규칙과 에너지 변화", items:[] },
+    { roman:"Ⅱ", title:"기권과 날씨", items:[] },
+    { roman:"Ⅲ", title:"운동과 에너지", items:[] },
+    { roman:"Ⅳ", title:"자극과 반응", items:[] },
+    { roman:"Ⅴ", title:"생식과 유전", items:[] },
+    { roman:"Ⅵ", title:"에너지 전환과 보존", items:[] },
+    { roman:"Ⅶ", title:"별과 우주", items:[
+        { title:"1. 시차 측정하기", desc:"시차를 측정하여 물체까지의 거리와 시차의 관계를 설명하는 라이브 워크시트입니다.", href:"worksheet.html" }
+      ]
+    }
+  ];
+
+  const $ = (id) => document.getElementById(id);
+  const nav = $('unitNav');
+  const welcome = $('welcome');
+  const unitView = $('unitView');
+  const backBtn = $('backBtn');
+
+  UNITS.forEach((unit, idx) => {
+    const btn = document.createElement('button');
+    btn.innerHTML = `<span class="roman">${unit.roman}</span>${unit.title}`;
+    btn.addEventListener('click', () => showUnit(idx));
+    btn.dataset.idx = idx;
+    nav.appendChild(btn);
+  });
+
+  function showUnit(idx){
+    const unit = UNITS[idx];
+    [...nav.children].forEach(b => b.classList.toggle('active', Number(b.dataset.idx) === idx));
+
+    welcome.hidden = true;
+    unitView.hidden = false;
+    backBtn.style.display = '';
+
+    $('unitRoman').textContent = unit.roman;
+    $('unitTitle').textContent = unit.title;
+
+    const body = $('unitBody');
+    body.innerHTML = '';
+
+    if(unit.items.length === 0){
+      body.innerHTML = `
+        <div class="empty-note">
+          <div class="icon">🌌</div>
+          <div>아직 등록된 학습지가 없습니다.<br>곧 추가될 예정입니다.</div>
+        </div>`;
+      return;
+    }
+
+    const ol = document.createElement('ol');
+    ol.className = 'item-list';
+    unit.items.forEach((item, i) => {
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <span class="num">${i + 1}</span>
+        <div class="info">
+          <div class="title">${item.title}</div>
+          <div class="desc">${item.desc}</div>
+        </div>
+        <a class="go-btn" href="${item.href}">바로가기</a>`;
+      ol.appendChild(li);
+    });
+    body.appendChild(ol);
+  }
+
+  backBtn.addEventListener('click', () => {
+    unitView.hidden = true;
+    welcome.hidden = false;
+    backBtn.style.display = 'none';
+    [...nav.children].forEach(b => b.classList.remove('active'));
+  });
+</script>
+
+</body>
+</html>
