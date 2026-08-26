@@ -14,7 +14,7 @@
  */
 
 const SHEET_NAME = "답안";
-const HEADER = ["제출시각", "반/번호", "이름",
+const HEADER = ["제출시각", "반", "번호", "이름",
                 "팔폄-오른쪽눈", "팔폄-왼쪽눈",
                 "팔굽힘-오른쪽눈", "팔굽힘-왼쪽눈",
                 "서술형답변",
@@ -47,7 +47,8 @@ function doPost(e) {
 
     sheet.appendRow([
       new Date(),
-      data.classNo || "",
+      data.stuClass || "",
+      data.stuNumber || "",
       data.name || "",
       data.extendRight || "",
       data.extendLeft || "",
@@ -87,12 +88,13 @@ function doPost(e) {
 
 /**
  * (선택) 학생이 자신의 피드백을 조회할 때 사용.
- * 예: GET 요청으로 ?classNo=2반15번&name=홍길동 을 보내면
+ * 예: GET 요청으로 ?stuClass=9&stuNumber=1&name=홍길동 을 보내면
  * 해당 학생의 가장 최근 제출 행에서 교사피드백 칸을 돌려준다.
  * 별도의 "피드백 조회 페이지"를 만들 때 fetch(GET)로 호출하면 된다.
  */
 function doGet(e) {
-  const classNo = e.parameter.classNo || "";
+  const stuClass = e.parameter.stuClass || "";
+  const stuNumber = e.parameter.stuNumber || "";
   const name = e.parameter.name || "";
   const sheet = getSheet_();
   const values = sheet.getDataRange().getValues();
@@ -100,16 +102,17 @@ function doGet(e) {
   let found = null;
   for (let i = values.length - 1; i >= 1; i--) { // 최신 제출부터 검색
     const row = values[i];
-    if (row[1] === classNo && row[2] === name) {
+    if (String(row[1]) === String(stuClass) && String(row[2]) === String(stuNumber) && row[3] === name) {
       found = {
         submittedAt: row[0],
-        classNo: row[1],
-        name: row[2],
-        extendRight: row[3],
-        extendLeft: row[4],
-        bentRight: row[5],
-        bentLeft: row[6],
-        reflection: row[7],
+        stuClass: row[1],
+        stuNumber: row[2],
+        name: row[3],
+        extendRight: row[4],
+        extendLeft: row[5],
+        bentRight: row[6],
+        bentLeft: row[7],
+        reflection: row[8],
         feedback: row[row.length - 1] // 교사피드백은 항상 마지막 열
       };
       break;
