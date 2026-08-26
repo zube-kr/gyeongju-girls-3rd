@@ -124,6 +124,7 @@
 
   .id-row{ display:flex; gap:12px; flex-wrap:wrap; }
   .id-row .field{ flex:1; min-width:160px; }
+  .id-row .field.field-narrow{ flex:0 1 90px; min-width:80px; }
   .id-row label{ display:block; font-size:13px; color:var(--ink-soft); margin-bottom:5px; }
 
   .consistency-flag{
@@ -180,6 +181,17 @@
   .blank-fb.correct{ color:var(--ok); }
   .blank-fb.wrong{ color:var(--warn); }
 
+  .toggle-group{ display:inline-flex; gap:6px; vertical-align:middle; }
+  .toggle-opt{
+    all:unset; cursor:pointer;
+    padding:7px 14px; border:1px solid #C9C3B0; border-radius:6px;
+    font-size:14px; color:var(--ink); background:#fff; font-family:inherit;
+  }
+  .toggle-opt:hover{ background:#F3F0E6; }
+  .toggle-opt.active{
+    background:var(--night); color:var(--star-soft); border-color:var(--night);
+  }
+
   .check-btn{
     background:#F3F0E6; border:1px solid #C9C3B0; color:var(--ink);
     border-radius:8px; padding:7px 14px; font-size:13px; cursor:pointer;
@@ -234,9 +246,13 @@
   <section>
     <h2><span class="num">2</span>학생 정보</h2>
     <div class="id-row">
-      <div class="field">
-        <label for="stuClass">반 / 번호</label>
-        <input type="text" id="stuClass" placeholder="예: 2반 15번" autocomplete="off">
+      <div class="field field-narrow">
+        <label for="stuClass">반</label>
+        <input type="number" id="stuClass" placeholder="예: 9" min="1" inputmode="numeric" autocomplete="off">
+      </div>
+      <div class="field field-narrow">
+        <label for="stuNumber">번호</label>
+        <input type="number" id="stuNumber" placeholder="예: 1" min="1" inputmode="numeric" autocomplete="off">
       </div>
       <div class="field">
         <label for="stuName">이름</label>
@@ -398,9 +414,17 @@
 
     <div class="fill-row">
       (2) 시차는 관측 지점과 물체 사이의 거리가 가까울수록
-      <input type="text" class="blank" id="blankClose" placeholder="예: 커지고">,
+      <span class="toggle-group" id="blankCloseGroup">
+        <button type="button" class="toggle-opt" data-value="커지고">커지고</button>
+        <button type="button" class="toggle-opt" data-value="작아지고">작아지고</button>
+      </span>
+      <input type="hidden" id="blankClose">,
       거리가 멀수록
-      <input type="text" class="blank" id="blankFar" placeholder="예: 작아진다">.
+      <span class="toggle-group" id="blankFarGroup">
+        <button type="button" class="toggle-opt" data-value="커진다">커진다</button>
+        <button type="button" class="toggle-opt" data-value="작아진다">작아진다</button>
+      </span>
+      <input type="hidden" id="blankFar">.
     </div>
     <div class="fill-row">
       ➜ 물체의 시차를 측정하면 관측 지점에서 물체까지의
@@ -422,9 +446,17 @@
     </div>
     <div class="fill-row">
       (3) 연주 시차와 별까지의 거리의 관계: 연주 시차는 지구에서 별까지의 거리가 가까울수록
-      <input type="text" class="blank" id="blankRel1" placeholder="① 예: 커">지고,
+      <span class="toggle-group" id="blankRel1Group">
+        <button type="button" class="toggle-opt" data-value="커">커</button>
+        <button type="button" class="toggle-opt" data-value="작아">작아</button>
+      </span>
+      <input type="hidden" id="blankRel1">지고,
       거리가 멀수록
-      <input type="text" class="blank" id="blankRel2" placeholder="② 예: 작아">진다.
+      <span class="toggle-group" id="blankRel2Group">
+        <button type="button" class="toggle-opt" data-value="커">커</button>
+        <button type="button" class="toggle-opt" data-value="작아">작아</button>
+      </span>
+      <input type="hidden" id="blankRel2">진다.
     </div>
     <button class="check-btn" id="checkConcept2">정답 확인</button>
     <span class="check-result" id="resultConcept2"></span>
@@ -569,9 +601,25 @@
     el.textContent = ok ? ('✓ ' + correctMsg) : ('✗ ' + wrongMsg);
   }
 
+  function setupToggle(groupId, hiddenId){
+    const group = $(groupId);
+    const hidden = $(hiddenId);
+    group.querySelectorAll('.toggle-opt').forEach(btn => {
+      btn.addEventListener('click', () => {
+        group.querySelectorAll('.toggle-opt').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        hidden.value = btn.dataset.value;
+      });
+    });
+  }
+  setupToggle('blankCloseGroup', 'blankClose');
+  setupToggle('blankFarGroup', 'blankFar');
+  setupToggle('blankRel1Group', 'blankRel1');
+  setupToggle('blankRel2Group', 'blankRel2');
+
   $('checkConcept1').addEventListener('click', () => {
-    const ok1 = norm($('blankClose').value).includes('커');
-    const ok2 = norm($('blankFar').value).includes('작');
+    const ok1 = $('blankClose').value === '커지고';
+    const ok2 = $('blankFar').value === '작아진다';
     const ok3 = norm($('blankDistanceWord').value).includes('거리');
     const allOk = ok1 && ok2 && ok3;
     showResult($('resultConcept1'), allOk,
@@ -582,8 +630,8 @@
   $('checkConcept2').addEventListener('click', () => {
     const ok1 = norm($('blankMonths').value) === '6';
     const ok2 = norm($('blankPc').value) === '1';
-    const ok3 = norm($('blankRel1').value).includes('커');
-    const ok4 = norm($('blankRel2').value).includes('작');
+    const ok3 = $('blankRel1').value === '커';
+    const ok4 = $('blankRel2').value === '작아';
     const allOk = ok1 && ok2 && ok3 && ok4;
     showResult($('resultConcept2'), allOk,
       '모두 맞았어요. (6개월 간격, 1pc, 가까울수록 커지고 멀수록 작아진다)',
@@ -616,7 +664,8 @@
 
   $('submitBtn').addEventListener('click', async () => {
     const payload = {
-      classNo: $('stuClass').value.trim(),
+      stuClass: $('stuClass').value.trim(),
+      stuNumber: $('stuNumber').value.trim(),
       name: $('stuName').value.trim(),
       extendRight: $('extendRight').value,
       extendLeft: $('extendLeft').value,
@@ -650,9 +699,9 @@
     const statusBox = $('statusBox');
     const btn = $('submitBtn');
 
-    if(!payload.name || !payload.classNo){
+    if(!payload.name || !payload.stuClass || !payload.stuNumber){
       statusBox.className = 'status show error';
-      statusBox.textContent = '반/번호와 이름을 입력해 주세요.';
+      statusBox.textContent = '반, 번호, 이름을 모두 입력해 주세요.';
       return;
     }
     if(!payload.extendRight || !payload.extendLeft || !payload.bentRight || !payload.bentLeft){
