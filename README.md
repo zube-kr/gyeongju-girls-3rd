@@ -37,4 +37,3 @@ const APPS_SCRIPT_URL = "https://script.google.com/macros/s/여기에_배포된_
 
 ## 다음 단계 아이디어
 - 학생용 "내 피드백 조회" 페이지 (Code.gs의 `doGet` 함수 활용)
-- 문제 1(A/B 관측자 문항) 정답 확정 후 자동 채점 로직 추가

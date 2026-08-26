@@ -488,43 +488,16 @@
   <section>
     <h2><span class="num">7</span>문제 풀이</h2>
 
-    <p style="font-size:14.5px; margin:0 0 8px;"><b>문제 1.</b> 그림은 서로 다른 두 지점 A, B에서 바라본 모습을 순서 없이 나타낸 것이다.</p>
-    <div class="svg-wrap">
-      <svg viewBox="0 0 640 210" xmlns="http://www.w3.org/2000/svg">
-        <rect x="250" y="30" width="30" height="90" fill="#2A3A5C"/>
-        <rect x="290" y="45" width="26" height="75" fill="#33456B"/>
-        <rect x="320" y="55" width="24" height="65" fill="#2A3A5C"/>
-        <line x1="300" y1="55" x2="300" y2="150" stroke="#C9CEE0" stroke-width="3"/>
-        <circle cx="300" cy="50" r="7" fill="#F3DFA0"/>
-        <circle cx="140" cy="185" r="9" fill="#C9CEE0"/>
-        <line x1="140" y1="176" x2="140" y2="150" stroke="#C9CEE0" stroke-width="3"/>
-        <text x="140" y="205" fill="#C9CEE0" font-size="13" text-anchor="middle">A</text>
-        <circle cx="460" cy="185" r="9" fill="#C9CEE0"/>
-        <line x1="460" y1="176" x2="460" y2="150" stroke="#C9CEE0" stroke-width="3"/>
-        <text x="460" y="205" fill="#C9CEE0" font-size="13" text-anchor="middle">B</text>
-        <line x1="140" y1="150" x2="300" y2="55" stroke="#E8C468" stroke-width="1.2"/>
-        <line x1="460" y1="150" x2="300" y2="55" stroke="#E8C468" stroke-width="1.2"/>
-        <text x="300" y="130" fill="#E8C468" font-size="13" text-anchor="middle">θ</text>
-      </svg>
-    </div>
-    <p class="hint">이에 대한 설명으로 옳은 것을 모두 고르시오.</p>
+    <p style="font-size:14.5px; margin:0 0 8px;"><b>문제 1.</b> 별의 연주 시차에 대한 설명으로 옳은 것을 모두 고르시오.</p>
     <div class="option-list">
-      <label><input type="checkbox" id="q1a"> ㄱ. (가)는 A 위치, (나)는 B 위치에서 본 모습이다.</label>
-      <label><input type="checkbox" id="q1b"> ㄴ. A와 B에서 관측된 시차는 θ이다.</label>
-      <label><input type="checkbox" id="q1c"> ㄷ. 관측자와 가로등 사이의 거리가 멀수록 θ가 커진다.</label>
+      <label><input type="checkbox" id="q1a"> ㄱ. 연주 시차는 1년 간격으로 측정한다.</label>
+      <label><input type="checkbox" id="q1b"> ㄴ. 연주 시차는 지구에서 측정한 별의 시차의 절반이다.</label>
+      <label><input type="checkbox" id="q1c"> ㄷ. 연주 시차의 크기는 별까지의 거리에 비례한다.</label>
     </div>
-    <p class="teacher-note">이 문제는 (가)/(나) 실제 사진의 순서에 따라 답이 달라질 수 있어 자동 채점하지 않습니다. 선생님이 확인 후 피드백을 남겨 주세요.</p>
+    <button class="check-btn" id="checkQ1">정답 확인</button>
+    <span class="check-result" id="resultQ1"></span>
 
-    <p style="font-size:14.5px; margin:24px 0 8px;"><b>문제 2.</b> 별의 연주 시차에 대한 설명으로 옳은 것을 모두 고르시오.</p>
-    <div class="option-list">
-      <label><input type="checkbox" id="q2a"> ㄱ. 연주 시차는 1년 간격으로 측정한다.</label>
-      <label><input type="checkbox" id="q2b"> ㄴ. 연주 시차는 지구에서 측정한 별의 시차의 절반이다.</label>
-      <label><input type="checkbox" id="q2c"> ㄷ. 연주 시차의 크기는 별까지의 거리에 비례한다.</label>
-    </div>
-    <button class="check-btn" id="checkQ2">정답 확인</button>
-    <span class="check-result" id="resultQ2"></span>
-
-    <p style="font-size:14.5px; margin:24px 0 8px;"><b>문제 3.</b> 그림은 별 A의 겉보기 방향 변화를 나타낸 것이다. 별 A의 거리를 구하시오.</p>
+    <p style="font-size:14.5px; margin:24px 0 8px;"><b>문제 2.</b> 그림은 별 A의 겉보기 방향 변화를 나타낸 것이다. 별 A의 거리를 구하시오.</p>
     <div class="svg-wrap">
       <svg viewBox="0 0 640 200" xmlns="http://www.w3.org/2000/svg">
         <ellipse cx="120" cy="100" rx="65" ry="30" fill="none" stroke="#3E5C99" stroke-width="1.5"/>
@@ -547,8 +520,8 @@
       <input type="number" step="0.01" class="blank" id="starADistance" style="width:90px;" placeholder="숫자">
       pc
     </div>
-    <button class="check-btn" id="checkQ3">정답 확인</button>
-    <span class="check-result" id="resultQ3"></span>
+    <button class="check-btn" id="checkQ2">정답 확인</button>
+    <span class="check-result" id="resultQ2"></span>
   </section>
 
   <section>
@@ -626,17 +599,17 @@
       '다시 확인해 보세요: 그림에서 더 가까운 별일수록 연주 시차는 크고, 거리는 짧습니다.');
   });
 
-  $('checkQ2').addEventListener('click', () => {
-    const selected = $('q2a').checked === false && $('q2b').checked === true && $('q2c').checked === false;
-    showResult($('resultQ2'), selected,
+  $('checkQ1').addEventListener('click', () => {
+    const selected = $('q1a').checked === false && $('q1b').checked === true && $('q1c').checked === false;
+    showResult($('resultQ1'), selected,
       '정답은 ㄴ입니다. (연주 시차는 6개월 간격 관측값의 절반이며, 거리에 반비례합니다)',
       '다시 확인해 보세요: 정답은 ㄴ만 해당합니다. 연주 시차는 6개월 간격 관측이며, 거리에 비례가 아니라 반비례합니다.');
   });
 
-  $('checkQ3').addEventListener('click', () => {
+  $('checkQ2').addEventListener('click', () => {
     const val = parseFloat($('starADistance').value);
     const ok = !isNaN(val) && Math.abs(val - 0.5) < 0.05;
-    showResult($('resultQ3'), ok,
+    showResult($('resultQ2'), ok,
       '정답입니다. 거리(pc) = 1 / 연주시차(") = 1 / 2 = 0.5 pc',
       '다시 계산해 보세요: 거리(pc) = 1 / 연주시차("). 연주 시차가 2"이므로 1 ÷ 2 = 0.5 pc입니다.');
   });
@@ -669,7 +642,6 @@
       blankDistanceCompare: $('blankDistanceCompare').value,
 
       q1Selected: ['q1a','q1b','q1c'].filter(id => $(id).checked).join(','),
-      q2Selected: ['q2a','q2b','q2c'].filter(id => $(id).checked).join(','),
       starADistance: $('starADistance').value,
 
       submittedAt: new Date().toISOString()

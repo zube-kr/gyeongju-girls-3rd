@@ -24,7 +24,7 @@ const HEADER = ["제출시각", "반/번호", "이름",
                 "개념-가까울수록", "개념-멀수록", "개념-거리단어",
                 "개념-개월수", "개념-pc값", "개념-관계①", "개념-관계②",
                 "XY-연주시차비교", "XY-거리비교",
-                "문제1-선택", "문제2-선택", "문제3-거리(pc)",
+                "문제1-선택", "문제2-거리(pc)",
                 "교사피드백"];
 
 function getSheet_() {
@@ -70,7 +70,6 @@ function doPost(e) {
       data.blankParallaxCompare || "",
       data.blankDistanceCompare || "",
       data.q1Selected || "",
-      data.q2Selected || "",
       data.starADistance || "",
       "" // 교사피드백: 처음엔 비워둠, 선생님이 시트에서 직접 채움
     ]);
