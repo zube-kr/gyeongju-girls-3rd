@@ -22,7 +22,6 @@ const HEADER = ["제출시각", "반", "번호", "이름",
                 "OX1", "OX2", "OX3",
                 "겉보기밝기순서", "실제밝기순서", "드래그시뮬최종상태",
                 "큰개자리-4.1", "큰개자리-2.0", "큰개자리--1.4",
-                "자기평가1", "자기평가2", "자기평가3",
                 "교사피드백"];
 
 function getSheet_() {
@@ -69,9 +68,6 @@ function doPost(e) {
       data.caniMatch41 || "",
       data.caniMatch20 || "",
       data.caniMatchNeg14 || "",
-      data.selfEval1 || "",
-      data.selfEval2 || "",
-      data.selfEval3 || "",
       "" // 교사피드백: 처음엔 비워둠, 선생님이 시트에서 직접 채움
     ]);
 
