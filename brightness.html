@@ -485,7 +485,7 @@
 
 <script>
   // ── 배포 시 이 값을 본인의 Google Apps Script 웹앱 URL로 교체하세요 ──
-  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/여기에_배포된_웹앱_URL을_붙여넣으세요/exec";
+  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyvWvjHdOgmzIA3pha45ZpF1kB0duIKzch8MSod3P_kMIMiPbaYxafRYkUa6DpAbmp5/exec";
 
   const $ = (id) => document.getElementById(id);
   function norm(s){ return (s || '').replace(/\s/g,''); }
@@ -712,6 +712,7 @@
   $('submitBtn').addEventListener('click', async () => {
     const q1 = document.querySelector('input[name=q1opt]:checked');
     const payload = {
+      form: 'brightness',
       stuClass: $('stuClass').value.trim(),
       stuNumber: $('stuNumber').value.trim(),
       name: $('stuName').value.trim(),
