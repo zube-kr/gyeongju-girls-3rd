@@ -70,6 +70,25 @@ const FORMS = {
         data.caniMatch41 || "", data.caniMatch20 || "", data.caniMatchNeg14 || ""
       ];
     }
+  },
+  starcolor: {
+    sheetName: "별색_답안",
+    header: ["제출시각", "반", "번호", "이름",
+             "별온도순서", "온도색비교설명",
+             "HR정리-반지름효과", "HR정리-온도효과",
+             "개념-고온색", "개념-저온색",
+             "확인문제1-선택", "확인문제2-선택", "확인문제3-선택",
+             "OX1", "OX2", "OX3",
+             "교사피드백"],
+    row: function (data) {
+      return [
+        data.starOrder || "", data.starCompareReason || "",
+        data.hrRadiusEffect || "", data.hrTempEffect || "",
+        data.hotColor || "", data.coldColor || "",
+        data.q1Selected || "", data.q2Selected || "", data.q3Selected || "",
+        data.ox1 || "", data.ox2 || "", data.ox3 || ""
+      ];
+    }
   }
 };
 
