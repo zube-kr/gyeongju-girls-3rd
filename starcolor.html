@@ -545,7 +545,24 @@
   // ── 2. 플랑크 복사 법칙 시뮬레이션 ──
   const PL_X0=40, PL_X1=600, PL_Y0=220, PL_Y1=20, PL_LMIN=100, PL_LMAX=2600;
   const PL_VIS_LO=380, PL_VIS_HI=780; // 가시광선 파장 범위(nm)
-  const PL_VIS_X0=160, PL_VIS_X1=480; // 가시광선을 그릴 픽셀 구간(실제 비율보다 과장해서 넓게)
+  function smoothPath(points){
+    if(points.length < 3){
+      return points.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+    }
+    let d = `M${points[0][0].toFixed(1)},${points[0][1].toFixed(1)} `;
+    for(let i=0; i<points.length-1; i++){
+      const p0 = points[i-1] || points[i];
+      const p1 = points[i];
+      const p2 = points[i+1];
+      const p3 = points[i+2] || p2;
+      const cp1x = p1[0] + (p2[0]-p0[0])/6;
+      const cp1y = p1[1] + (p2[1]-p0[1])/6;
+      const cp2x = p2[0] - (p3[0]-p1[0])/6;
+      const cp2y = p2[1] - (p3[1]-p1[1])/6;
+      d += `C${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)} `;
+    }
+    return d;
+  }
   function planckB(lambdaNm, T){
     const lambda = lambdaNm*1e-9;
     const h=6.626e-34, c=3e8, k=1.381e-23;
@@ -553,20 +570,34 @@
     if(x>700) return 0;
     return (1/Math.pow(lambda,5)) * (1/(Math.exp(x)-1));
   }
-  // 자외선(100~380nm)·가시광선(380~780nm)·적외선(780~2600nm) 구간을 각각 선형으로 잇는
-  // 구간별 매핑. 가시광선 구간을 의도적으로 넓게 배정해 눈에 잘 띄게 하면서도,
-  // 곡선·λmax 표시선·무지개 띠가 항상 같은 좌표계를 쓰도록 해 서로 어긋나지 않게 한다.
-  function lambdaToX(nm){
-    if(nm <= PL_VIS_LO){
-      const f = (nm-PL_LMIN)/(PL_VIS_LO-PL_LMIN);
-      return PL_X0 + f*(PL_VIS_X0-PL_X0);
-    } else if(nm <= PL_VIS_HI){
-      const f = (nm-PL_VIS_LO)/(PL_VIS_HI-PL_VIS_LO);
-      return PL_VIS_X0 + f*(PL_VIS_X1-PL_VIS_X0);
-    } else {
-      const f = Math.min(1, (nm-PL_VIS_HI)/(PL_LMAX-PL_VIS_HI));
-      return PL_VIS_X1 + f*(PL_X1-PL_VIS_X1);
+  // 파장→x좌표 변환: 가시광선(380~780nm) 구간에 픽셀을 더 많이 배정해 눈에 잘 띄게
+  // 넓혀 그리되, 구간 경계 없이 연속적으로(가우시안 가중치) 밀도를 바꿔서 꺾이는 지점
+  // 없이 매끈하게 이어지도록 한다. 곡선·λmax 표시선·무지개 띠가 항상 이 매핑 하나를
+  // 공유하므로 서로 어긋나지 않는다.
+  const WARP_N = 400;
+  const warpFrac = new Array(WARP_N+1);
+  (function buildWarp(){
+    const center = (PL_VIS_LO+PL_VIS_HI)/2;
+    const sigma = (PL_VIS_HI-PL_VIS_LO)/2.2;
+    const extraWeight = 5;
+    let cum = 0;
+    for(let i=0;i<=WARP_N;i++){
+      const nm = PL_LMIN + (PL_LMAX-PL_LMIN)*i/WARP_N;
+      const density = 1 + extraWeight*Math.exp(-0.5*Math.pow((nm-center)/sigma,2));
+      cum += density;
+      warpFrac[i] = cum;
     }
+    const total = warpFrac[WARP_N];
+    for(let i=0;i<=WARP_N;i++) warpFrac[i] /= total;
+  })();
+  function lambdaToFrac(nm){
+    const t = Math.max(0, Math.min(WARP_N, (nm-PL_LMIN)/(PL_LMAX-PL_LMIN)*WARP_N));
+    const i0 = Math.min(WARP_N-1, Math.floor(t));
+    const f = t - i0;
+    return warpFrac[i0]*(1-f) + warpFrac[i0+1]*f;
+  }
+  function lambdaToX(nm){
+    return PL_X0 + lambdaToFrac(nm)*(PL_X1-PL_X0);
   }
 
   (function buildSpectrumBand(){
@@ -582,31 +613,32 @@
       rect.setAttribute('fill', wavelengthToRGB((wl0+wl1)/2));
       g.appendChild(rect);
     }
+    const bx0 = lambdaToX(PL_VIS_LO), bx1 = lambdaToX(PL_VIS_HI);
     const border = document.createElementNS(svgNS,'rect');
-    border.setAttribute('x', PL_VIS_X0); border.setAttribute('y', 222);
-    border.setAttribute('width', PL_VIS_X1-PL_VIS_X0); border.setAttribute('height', 16);
+    border.setAttribute('x', bx0); border.setAttribute('y', 222);
+    border.setAttribute('width', bx1-bx0); border.setAttribute('height', 16);
     border.setAttribute('fill', 'none'); border.setAttribute('stroke', '#1F2430'); border.setAttribute('stroke-width', 1);
     g.appendChild(border);
   })();
 
   function updatePlanck(T){
-    const N = 80;
+    const N = 160;
     let maxB = 0;
-    const pts = [];
+    const vals = [];
     for(let i=0;i<=N;i++){
       const nm = PL_LMIN + (PL_LMAX-PL_LMIN)*i/N;
       const val = planckB(nm, T);
-      pts.push(val);
+      vals.push(val);
       if(val>maxB) maxB = val;
     }
-    let d = '';
+    const points = [];
     for(let i=0;i<=N;i++){
       const nm = PL_LMIN + (PL_LMAX-PL_LMIN)*i/N;
       const x = lambdaToX(nm);
-      const y = PL_Y0 - (pts[i]/maxB)*(PL_Y0-PL_Y1);
-      d += (i===0?'M':'L') + x.toFixed(1) + ',' + y.toFixed(1) + ' ';
+      const y = PL_Y0 - (vals[i]/maxB)*(PL_Y0-PL_Y1);
+      points.push([x,y]);
     }
-    $('planckCurve').setAttribute('d', d);
+    $('planckCurve').setAttribute('d', smoothPath(points));
 
     const peakNm = 2.8977719e6 / T;
     const clampedPeak = Math.min(PL_LMAX, Math.max(PL_LMIN, peakNm));
