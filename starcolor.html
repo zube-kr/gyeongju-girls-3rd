@@ -554,15 +554,26 @@
   function lambdaToX(nm){ return PL_X0 + (nm-PL_LMIN)/(PL_LMAX-PL_LMIN)*(PL_X1-PL_X0); }
 
   (function buildSpectrumBand(){
+    // 실제 파장 축 비율과 무관하게, 눈에 잘 띄도록 가시광선 띠를 과장해서 넓게 그린다.
     const g = $('spectrumBand');
-    for(let wl=380; wl<=780; wl+=4){
-      const x0 = lambdaToX(wl), x1 = lambdaToX(wl+4);
+    const bandX0 = 55, bandX1 = 585;
+    const wlMin = 380, wlMax = 780;
+    const steps = 120;
+    for(let i=0; i<steps; i++){
+      const wl = wlMin + (wlMax-wlMin)*(i+0.5)/steps;
+      const x0 = bandX0 + (bandX1-bandX0)*i/steps;
+      const x1 = bandX0 + (bandX1-bandX0)*(i+1)/steps;
       const rect = document.createElementNS(svgNS,'rect');
-      rect.setAttribute('x', x0); rect.setAttribute('y', 224);
-      rect.setAttribute('width', Math.max(1,x1-x0)); rect.setAttribute('height', 10);
+      rect.setAttribute('x', x0); rect.setAttribute('y', 222);
+      rect.setAttribute('width', Math.max(1,x1-x0)); rect.setAttribute('height', 16);
       rect.setAttribute('fill', wavelengthToRGB(wl));
       g.appendChild(rect);
     }
+    const border = document.createElementNS(svgNS,'rect');
+    border.setAttribute('x', bandX0); border.setAttribute('y', 222);
+    border.setAttribute('width', bandX1-bandX0); border.setAttribute('height', 16);
+    border.setAttribute('fill', 'none'); border.setAttribute('stroke', '#1F2430'); border.setAttribute('stroke-width', 1);
+    g.appendChild(border);
   })();
 
   function updatePlanck(T){
