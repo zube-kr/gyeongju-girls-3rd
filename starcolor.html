@@ -544,6 +544,8 @@
 
   // ── 2. 플랑크 복사 법칙 시뮬레이션 ──
   const PL_X0=40, PL_X1=600, PL_Y0=220, PL_Y1=20, PL_LMIN=100, PL_LMAX=2600;
+  const PL_VIS_LO=380, PL_VIS_HI=780; // 가시광선 파장 범위(nm)
+  const PL_VIS_X0=160, PL_VIS_X1=480; // 가시광선을 그릴 픽셀 구간(실제 비율보다 과장해서 넓게)
   function planckB(lambdaNm, T){
     const lambda = lambdaNm*1e-9;
     const h=6.626e-34, c=3e8, k=1.381e-23;
@@ -551,27 +553,38 @@
     if(x>700) return 0;
     return (1/Math.pow(lambda,5)) * (1/(Math.exp(x)-1));
   }
-  function lambdaToX(nm){ return PL_X0 + (nm-PL_LMIN)/(PL_LMAX-PL_LMIN)*(PL_X1-PL_X0); }
+  // 자외선(100~380nm)·가시광선(380~780nm)·적외선(780~2600nm) 구간을 각각 선형으로 잇는
+  // 구간별 매핑. 가시광선 구간을 의도적으로 넓게 배정해 눈에 잘 띄게 하면서도,
+  // 곡선·λmax 표시선·무지개 띠가 항상 같은 좌표계를 쓰도록 해 서로 어긋나지 않게 한다.
+  function lambdaToX(nm){
+    if(nm <= PL_VIS_LO){
+      const f = (nm-PL_LMIN)/(PL_VIS_LO-PL_LMIN);
+      return PL_X0 + f*(PL_VIS_X0-PL_X0);
+    } else if(nm <= PL_VIS_HI){
+      const f = (nm-PL_VIS_LO)/(PL_VIS_HI-PL_VIS_LO);
+      return PL_VIS_X0 + f*(PL_VIS_X1-PL_VIS_X0);
+    } else {
+      const f = Math.min(1, (nm-PL_VIS_HI)/(PL_LMAX-PL_VIS_HI));
+      return PL_VIS_X1 + f*(PL_X1-PL_VIS_X1);
+    }
+  }
 
   (function buildSpectrumBand(){
-    // 실제 파장 축 비율과 무관하게, 눈에 잘 띄도록 가시광선 띠를 과장해서 넓게 그린다.
     const g = $('spectrumBand');
-    const bandX0 = 55, bandX1 = 585;
-    const wlMin = 380, wlMax = 780;
-    const steps = 120;
+    const steps = 100;
     for(let i=0; i<steps; i++){
-      const wl = wlMin + (wlMax-wlMin)*(i+0.5)/steps;
-      const x0 = bandX0 + (bandX1-bandX0)*i/steps;
-      const x1 = bandX0 + (bandX1-bandX0)*(i+1)/steps;
+      const wl0 = PL_VIS_LO + (PL_VIS_HI-PL_VIS_LO)*i/steps;
+      const wl1 = PL_VIS_LO + (PL_VIS_HI-PL_VIS_LO)*(i+1)/steps;
+      const x0 = lambdaToX(wl0), x1 = lambdaToX(wl1);
       const rect = document.createElementNS(svgNS,'rect');
       rect.setAttribute('x', x0); rect.setAttribute('y', 222);
       rect.setAttribute('width', Math.max(1,x1-x0)); rect.setAttribute('height', 16);
-      rect.setAttribute('fill', wavelengthToRGB(wl));
+      rect.setAttribute('fill', wavelengthToRGB((wl0+wl1)/2));
       g.appendChild(rect);
     }
     const border = document.createElementNS(svgNS,'rect');
-    border.setAttribute('x', bandX0); border.setAttribute('y', 222);
-    border.setAttribute('width', bandX1-bandX0); border.setAttribute('height', 16);
+    border.setAttribute('x', PL_VIS_X0); border.setAttribute('y', 222);
+    border.setAttribute('width', PL_VIS_X1-PL_VIS_X0); border.setAttribute('height', 16);
     border.setAttribute('fill', 'none'); border.setAttribute('stroke', '#1F2430'); border.setAttribute('stroke-width', 1);
     g.appendChild(border);
   })();
