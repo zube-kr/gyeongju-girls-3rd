@@ -1,9 +1,20 @@
 /**
  * 과학 교실 워크시트 - 답안 저장용 Apps Script
  *
- * 여러 워크시트(시차 측정하기, 별의 밝기 등)의 제출을 하나의 배포/스프레드시트로
- * 받아서, 워크시트별로 별도의 시트(탭)에 저장합니다. 워크시트를 새로 추가할 때마다
- * 새 배포를 만들 필요 없이, 아래 FORMS 객체에 항목만 추가하면 됩니다.
+ * 여러 워크시트(시차 측정하기, 별의 밝기, 별의 색 등)의 제출을 하나의 배포/
+ * 스프레드시트로 받아서, 워크시트별로 별도의 시트(탭)에 저장합니다.
+ *
+ * ▣ 새 워크시트를 추가할 때 이 코드를 고칠 필요가 없습니다.
+ * 워크시트가 보내는 payload에 form: "고유이름" 값만 넣으면, 그 이름의 시트
+ * 탭이 자동으로 만들어지고 payload에 담긴 필드가 그대로(적은 순서 그대로)
+ * 열로 기록됩니다. 나중에 문항을 추가해 필드가 늘어나도 "교사피드백" 열
+ * 앞에 새 열이 자동으로 끼워집니다. (반/번호/이름은 항상 맨 앞, 교사피드백은
+ * 항상 맨 뒤에 고정됩니다.)
+ *
+ * 시차/밝기/별색 워크시트처럼 한글로 다듬은 열 이름을 쓰고 싶은 워크시트는
+ * 아래 FORMS 객체에 항목을 추가하면 되지만(선택 사항), 그렇게 하지 않아도
+ * payload의 필드 이름(예: extendRight)이 그대로 열 제목으로 쓰이며 정상
+ * 동작합니다.
  *
  * [설치 방법]
  * 1. 새 Google 스프레드시트를 만든다.
@@ -92,37 +103,80 @@ const FORMS = {
   }
 };
 
+// form 필드가 아예 없는 아주 예전 요청만 시차 워크시트로 간주한다.
+// FORMS에 없는 값이라도 그대로 사용해 새 워크시트용 시트를 자동으로 만든다.
 function resolveForm_(formKey) {
-  return FORMS[formKey] ? formKey : "parallax"; // 기존 워크시트는 form 필드가 없으므로 기본값 유지
+  return formKey || "parallax";
 }
 
 function getSheet_(formKey) {
-  const form = FORMS[formKey];
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName(form.sheetName);
+  const sheetName = FORMS[formKey] ? FORMS[formKey].sheetName : formKey;
+  let sheet = ss.getSheetByName(sheetName);
   if (!sheet) {
-    sheet = ss.insertSheet(form.sheetName);
+    sheet = ss.insertSheet(sheetName);
   }
-  if (sheet.getLastRow() === 0) {
-    sheet.appendRow(form.header);
+  if (sheet.getLastRow() === 0 && FORMS[formKey]) {
+    sheet.appendRow(FORMS[formKey].header);
     sheet.setFrozenRows(1);
   }
   return sheet;
+}
+
+/**
+ * FORMS에 등록되지 않은(=새로 추가된) 워크시트용: payload의 키를 그대로
+ * 열로 써서 기록한다. 처음 제출되면 그 순서 그대로 헤더를 만들고, 이후 새
+ * 필드(문항 추가 등)가 생기면 "교사피드백" 앞에 새 열을 끼워 넣는다.
+ */
+function appendDynamicRow_(sheet, data) {
+  const EXCLUDE = ["form", "submittedAt", "stuClass", "stuNumber", "name"];
+  const fixedFront = ["반", "번호", "이름"];
+  const middleKeys = Object.keys(data).filter(function (k) { return EXCLUDE.indexOf(k) === -1; });
+
+  let header;
+  if (sheet.getLastRow() === 0) {
+    header = ["제출시각"].concat(fixedFront, middleKeys, ["교사피드백"]);
+    sheet.appendRow(header);
+    sheet.setFrozenRows(1);
+  } else {
+    const lastCol = sheet.getLastColumn();
+    header = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+    const newKeys = middleKeys.filter(function (k) { return header.indexOf(k) === -1; });
+    if (newKeys.length > 0) {
+      const feedbackIdx = header.indexOf("교사피드백"); // 0-based
+      const insertAt = feedbackIdx === -1 ? header.length : feedbackIdx;
+      sheet.insertColumnsBefore(insertAt + 1, newKeys.length);
+      sheet.getRange(1, insertAt + 1, 1, newKeys.length).setValues([newKeys]);
+      header = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    }
+  }
+
+  const fixedValues = { "반": data.stuClass || "", "번호": data.stuNumber || "", "이름": data.name || "" };
+  const row = header.map(function (col) {
+    if (col === "제출시각") return new Date();
+    if (col === "교사피드백") return "";
+    if (fixedValues.hasOwnProperty(col)) return fixedValues[col];
+    return data[col] !== undefined ? data[col] : "";
+  });
+  sheet.appendRow(row);
 }
 
 function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
     const formKey = resolveForm_(data.form);
-    const form = FORMS[formKey];
     const sheet = getSheet_(formKey);
 
-    sheet.appendRow([
-      new Date(),
-      data.stuClass || "",
-      data.stuNumber || "",
-      data.name || ""
-    ].concat(form.row(data), [""])); // 마지막 칸: 교사피드백, 처음엔 비워둠
+    if (FORMS[formKey]) {
+      sheet.appendRow([
+        new Date(),
+        data.stuClass || "",
+        data.stuNumber || "",
+        data.name || ""
+      ].concat(FORMS[formKey].row(data), [""])); // 마지막 칸: 교사피드백, 처음엔 비워둠
+    } else {
+      appendDynamicRow_(sheet, data);
+    }
 
     return ContentService
       .createTextOutput(JSON.stringify({ result: "success" }))
