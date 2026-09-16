@@ -100,6 +100,24 @@ const FORMS = {
         data.ox1 || "", data.ox2 || "", data.ox3 || ""
       ];
     }
+  },
+  galaxy: {
+    sheetName: "은하_답안",
+    header: ["제출시각", "반", "번호", "이름",
+             "복습-절대등급", "복습-베텔게우스온도", "복습-가마온도설명",
+             "개념-지름", "개념-별의개수", "개념-태양계거리", "개념-위에서본모양", "개념-옆에서본모양",
+             "확인문제1-선택", "확인문제2-선택",
+             "OX1", "OX2",
+             "교사피드백"],
+    row: function (data) {
+      return [
+        data.reviewAbsMag || "", data.reviewBetel || "", data.reviewKilnReason || "",
+        data.blankDiameter || "", data.blankStarCount || "", data.blankSunDist || "",
+        data.blankTopShape || "", data.blankSideShape || "",
+        data.q1Selected || "", data.q2Selected || "",
+        data.ox1 || "", data.ox2 || ""
+      ];
+    }
   }
 };
 

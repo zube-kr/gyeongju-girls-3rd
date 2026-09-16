@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>배움활동 · 별의 색과 온도, 우리 은하 속 태양계의 위치</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --night:#141B34;
+    --night-deep:#0C1224;
+    --star:#E8C468;
+    --star-soft:#F3DFA0;
+    --paper:#FAF8F3;
+    --paper-line:#E4DFD2;
+    --ink:#1F2430;
+    --ink-soft:#5B6172;
+    --ok:#3F7D5C;
+    --warn:#B0522F;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Noto Sans KR',sans-serif;
+    line-height:1.6;
+  }
+  header.hero{
+    background:radial-gradient(ellipse at 20% -10%, #26325C 0%, var(--night) 45%, var(--night-deep) 100%);
+    color:var(--paper);
+    padding:48px 24px 40px;
+    position:relative;
+    overflow:hidden;
+  }
+  header.hero::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image:
+      radial-gradient(1.5px 1.5px at 10% 20%, var(--star-soft) 99%, transparent),
+      radial-gradient(1.5px 1.5px at 80% 15%, var(--star-soft) 99%, transparent),
+      radial-gradient(1px 1px at 60% 55%, #fff 99%, transparent),
+      radial-gradient(1.5px 1.5px at 92% 70%, var(--star-soft) 99%, transparent),
+      radial-gradient(1px 1px at 35% 80%, #fff 99%, transparent),
+      radial-gradient(1px 1px at 15% 65%, #fff 99%, transparent);
+    opacity:.8;
+  }
+  .hero-inner{ max-width:760px; margin:0 auto; position:relative; }
+  .eyebrow{
+    font-size:13px; letter-spacing:.14em; color:var(--star);
+    text-transform:uppercase; margin-bottom:10px; font-weight:700;
+  }
+  h1{
+    font-family:'Noto Serif KR',serif;
+    font-size:clamp(24px,4vw,32px);
+    margin:0 0 10px;
+    font-weight:700;
+  }
+  .hero p{ color:#C9CEE0; max-width:56ch; margin:0; font-size:15px;}
+
+  main{ max-width:760px; margin:0 auto; padding:32px 20px 80px; }
+
+  section{
+    background:#fff;
+    border:1px solid var(--paper-line);
+    border-radius:14px;
+    padding:26px 24px;
+    margin-bottom:22px;
+  }
+  section h2{
+    font-family:'Noto Serif KR',serif;
+    font-size:19px;
+    margin:0 0 6px;
+    display:flex; align-items:center; gap:8px;
+  }
+  section h2 .num{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:26px; height:26px; border-radius:50%;
+    background:var(--night); color:var(--star);
+    font-size:13px; font-family:'Noto Sans KR',sans-serif; font-weight:700;
+    flex:none;
+  }
+  section .hint{ color:var(--ink-soft); font-size:13.5px; margin:0 0 16px; }
+
+  .cell-pair{ display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+  .cell-pair label{ font-size:13px; color:var(--ink-soft); white-space:nowrap; }
+
+  textarea, input[type=text], input[type=number]{
+    width:100%; padding:11px 12px; border:1px solid #C9C3B0; border-radius:8px;
+    font-family:inherit; font-size:14.5px; color:var(--ink); resize:vertical;
+  }
+  textarea{ min-height:90px; }
+
+  .id-row{ display:flex; gap:12px; flex-wrap:wrap; }
+  .id-row .field{ flex:1; min-width:160px; }
+  .id-row .field.field-narrow{ flex:0 1 90px; min-width:80px; }
+  .id-row label{ display:block; font-size:13px; color:var(--ink-soft); margin-bottom:5px; }
+
+  button.submit-btn{
+    background:var(--night); color:var(--star-soft);
+    border:none; border-radius:10px; padding:14px 20px;
+    font-size:15.5px; font-weight:700; cursor:pointer; width:100%;
+    font-family:'Noto Sans KR',sans-serif;
+  }
+  button.submit-btn:disabled{ opacity:.55; cursor:default; }
+  button.submit-btn:hover:not(:disabled){ background:#1D2748; }
+
+  .status{
+    margin-top:14px; font-size:13.5px; padding:12px 14px; border-radius:8px;
+    display:none;
+  }
+  .status.show{ display:block; }
+  .status.sending{ background:#F1F0EA; color:var(--ink-soft); }
+  .status.success{ background:#E9F3EC; color:var(--ok); }
+  .status.error{ background:#FBEDE6; color:var(--warn); }
+
+  footer{ text-align:center; color:var(--ink-soft); font-size:12.5px; padding:0 20px 40px; }
+
+  .fill-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:10px 0; font-size:14.5px; }
+  .blank{
+    display:inline-block; width:90px; padding:7px 8px; border:1px solid #C9C3B0;
+    border-radius:6px; font-family:inherit; font-size:14px; text-align:center;
+  }
+  select.blank{ width:auto; padding:7px 10px; }
+
+  .toggle-group{ display:inline-flex; gap:6px; vertical-align:middle; flex-wrap:wrap; }
+  .toggle-opt{
+    all:unset; cursor:pointer;
+    padding:7px 14px; border:1px solid #C9C3B0; border-radius:6px;
+    font-size:14px; color:var(--ink); background:#fff; font-family:inherit;
+  }
+  .toggle-opt:hover{ background:#F3F0E6; }
+  .toggle-opt.active{
+    background:var(--night); color:var(--star-soft); border-color:var(--night);
+  }
+
+  .check-btn{
+    background:#F3F0E6; border:1px solid #C9C3B0; color:var(--ink);
+    border-radius:8px; padding:7px 14px; font-size:13px; cursor:pointer;
+    font-family:inherit; margin-top:6px;
+  }
+  .check-btn:hover{ background:#EAE5D6; }
+  .check-result{ font-size:13px; font-weight:700; margin-top:8px; display:block; }
+  .check-result.correct{ color:var(--ok); }
+  .check-result.wrong{ color:var(--warn); }
+
+  .option-list{ display:flex; flex-direction:column; gap:9px; margin:10px 0 4px; }
+  .option-list label{ display:flex; gap:9px; align-items:flex-start; font-size:14px; cursor:pointer; }
+  .option-list input{ margin-top:3px; flex:none; }
+
+  .svg-wrap{ background:#0C1224; border-radius:10px; padding:12px; margin:12px 0; }
+  .svg-wrap.light{ background:#fff; border:1px solid var(--paper-line); }
+  .svg-wrap svg{ width:100%; height:auto; display:block; }
+
+  .teacher-note{
+    font-size:12.5px; color:var(--ink-soft); background:#F3F0E6;
+    border-radius:8px; padding:9px 12px; margin-top:10px;
+  }
+
+  .slider-row{ display:flex; align-items:center; gap:12px; margin:10px 0; flex-wrap:wrap; }
+  .slider-row label{ font-size:13.5px; color:var(--ink-soft); min-width:110px; }
+  .slider-row input[type=range]{ flex:1; min-width:160px; accent-color:var(--night); }
+  .slider-readout{ font-size:14px; font-weight:700; color:var(--night); min-width:150px; text-align:right; }
+
+  .preset-row{ display:flex; gap:8px; flex-wrap:wrap; margin:10px 0 4px; }
+
+  .legend-row{ display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:var(--ink-soft); margin-top:8px; }
+  .legend-row .chip{ display:inline-flex; align-items:center; gap:5px; }
+  .legend-row .chip span.box{ width:12px; height:12px; border-radius:3px; display:inline-block; }
+
+  @media (max-width:520px){
+    .slider-row label{ min-width:90px; font-size:12.5px; }
+    .slider-readout{ min-width:120px; font-size:13px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow">Ⅶ. 별과 우주 · 배움활동</div>
+    <h1>별의 색과 온도, 그리고 우리 은하 속 태양계의 위치</h1>
+    <p>별의 색과 표면 온도의 관계를 복습하고, 우리은하의 모양·크기와 태양계의 위치를 시뮬레이션으로 탐구한다. 아래 자료와 시뮬레이션을 탐구한 뒤, 표와 질문에 답해 제출하세요.</p>
+  </div>
+</header>
+
+<main>
+
+  <section>
+    <h2><span class="num">1</span>복습 · 별의 색과 표면 온도 (교과서 263쪽 스스로 점검)</h2>
+    <p class="hint">지난 시간에 배운 내용을 간단히 확인해 보자.</p>
+
+    <div class="fill-row">
+      1. 10 pc 거리에 있는 어떤 별의 겉보기 등급이 3등급이었다면, 이 별의 절대 등급은
+      <input type="text" class="blank" id="reviewAbsMag" inputmode="numeric" placeholder="등급">
+      등급이다.
+    </div>
+
+    <div class="fill-row">
+      2. 베텔게우스의 색은 적색이므로, 태양보다 온도가
+      <span class="toggle-group" id="reviewBetelGroup">
+        <button type="button" class="toggle-opt" data-value="낮은">낮은</button>
+        <button type="button" class="toggle-opt" data-value="높은">높은</button>
+      </span>
+      <input type="hidden" id="reviewBetel">
+      별이다.
+    </div>
+    <button class="check-btn" id="checkReview">정답 확인</button>
+    <span class="check-result" id="resultReview"></span>
+
+    <p class="hint" style="margin-top:18px;">[창의적 사고력] 옛 조상들은 도자기를 구울 때 불꽃의 색깔을 보고 가마 속 온도를 짐작했다고 한다. 이를 색과 온도의 관계로 설명해 보자.</p>
+    <textarea id="reviewKilnReason" placeholder="예: 불꽃이 붉은색일 때보다 흰색이나 파란색을 띨 때 온도가 더 높기 때문에..."></textarea>
+    <p class="teacher-note">이 서술형 답변은 자동 채점 없이 그대로 저장되어, 선생님이 스프레드시트에서 직접 확인하고 피드백을 남깁니다.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">2</span>배움 자료 · 은하수와 우리은하</h2>
+    <p class="hint">맑고 어두운 밤하늘을 가로지르는 희미한 빛의 띠를 <b>은하수</b>라고 한다. 우주에는 수많은 별로 이루어진 거대한 천체 집단인 <b>은하</b>가 무수히 많은데, 그중 태양계가 속한 은하를 <b>우리은하</b>라고 한다. 은하수는 우리은하를 안쪽(태양계)에서 바라본 모습이다.</p>
+    <div class="svg-wrap light">
+      <svg viewBox="0 0 640 190" xmlns="http://www.w3.org/2000/svg">
+        <g font-family="Noto Sans KR" font-size="12.5" fill="#1F2430">
+          <ellipse cx="150" cy="90" rx="130" ry="26" fill="#E8C468" opacity="0.85"/>
+          <circle cx="150" cy="90" r="18" fill="#F7D24E"/>
+          <text x="150" y="150" text-anchor="middle" font-weight="700">위에서 본 우리은하</text>
+          <text x="150" y="170" text-anchor="middle" font-size="11.5" fill="#5B6172">막대 모양 중심부 + 나선팔</text>
+        </g>
+        <g font-family="Noto Sans KR" font-size="12.5" fill="#1F2430">
+          <rect x="380" y="80" width="220" height="18" rx="9" fill="#C9CEE0"/>
+          <ellipse cx="490" cy="89" rx="34" ry="24" fill="#E8C468"/>
+          <text x="490" y="150" text-anchor="middle" font-weight="700">옆에서 본 우리은하</text>
+          <text x="490" y="170" text-anchor="middle" font-size="11.5" fill="#5B6172">납작한 원반 + 부풀어 있는 중심부</text>
+        </g>
+      </svg>
+    </div>
+    <p class="hint" style="margin-top:14px;">우리은하는 지름이 약 30 kpc이고, 약 2000억 개의 별을 포함하고 있다. 태양계는 은하 중심에서 약 8.5 kpc 떨어진 나선팔에 위치한다. 지구에서 은하수를 보면, 은하 중심 방향(궁수자리 부근)의 은하수가 다른 방향보다 폭이 넓고 뚜렷하게 보인다.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">3</span>시뮬레이션 · 우리은하 속 태양계의 위치</h2>
+    <p class="hint">아래 슬라이더로 은하 중심에서부터의 거리를 바꾸면서, 태양계가 우리은하의 어디쯤에 위치하는지 확인해 보자. <b>위/옆에서 본 모습</b> 버튼을 눌러 두 시점을 비교할 수 있다.</p>
+
+    <div class="preset-row">
+      <button type="button" class="toggle-opt view-btn active" data-view="top">위에서 본 모습</button>
+      <button type="button" class="toggle-opt view-btn" data-view="side">옆에서 본 모습</button>
+    </div>
+
+    <div class="svg-wrap light" id="topViewWrap">
+      <svg id="topSvg" viewBox="0 0 640 340" xmlns="http://www.w3.org/2000/svg">
+        <g id="topArms"></g>
+        <ellipse cx="320" cy="170" rx="60" ry="24" fill="#F7D24E" opacity="0.9"/>
+        <circle cx="320" cy="170" r="14" fill="#FCEBAF"/>
+        <line id="topRadiusLine" x1="320" y1="170" x2="320" y2="170" stroke="#B0522F" stroke-width="1.4" stroke-dasharray="4 3"/>
+        <circle id="topMarker" cx="320" cy="170" r="7" fill="#2E6FE0" stroke="#fff" stroke-width="1.5"/>
+        <text id="topMarkerLabel" x="320" y="170" font-family="Noto Sans KR" font-size="12" fill="#1F2430" font-weight="700" text-anchor="middle"></text>
+      </svg>
+    </div>
+
+    <div class="svg-wrap light" id="sideViewWrap" style="display:none;">
+      <svg id="sideSvg" viewBox="0 0 640 200" xmlns="http://www.w3.org/2000/svg">
+        <rect x="60" y="120" width="520" height="14" rx="7" fill="#C9CEE0"/>
+        <ellipse cx="320" cy="127" rx="46" ry="30" fill="#E8C468"/>
+        <line x1="320" y1="127" x2="320" y2="127" stroke="#8A93A8" stroke-width="1"/>
+        <line id="sideRadiusLine" x1="320" y1="60" x2="320" y2="60" stroke="#B0522F" stroke-width="1.4" stroke-dasharray="4 3"/>
+        <circle id="sideMarker" cx="320" cy="60" r="7" fill="#2E6FE0" stroke="#fff" stroke-width="1.5"/>
+        <text id="sideMarkerLabel" x="320" y="46" font-family="Noto Sans KR" font-size="12" fill="#1F2430" font-weight="700" text-anchor="middle"></text>
+        <text x="320" y="180" font-family="Noto Sans KR" font-size="12" fill="#5B6172" text-anchor="middle">은하 중심에서부터의 거리(kpc)</text>
+      </svg>
+    </div>
+
+    <div class="slider-row">
+      <label for="galaxyDist">은하 중심으로부터 거리</label>
+      <input type="range" id="galaxyDist" min="0" max="15" step="0.5" value="0">
+      <span class="slider-readout" id="galaxyDistReadout">0 kpc</span>
+    </div>
+    <div class="preset-row">
+      <button type="button" class="toggle-opt dist-preset" data-d="0">은하 중심</button>
+      <button type="button" class="toggle-opt dist-preset" data-d="8.5">태양계</button>
+      <button type="button" class="toggle-opt dist-preset" data-d="15">은하 가장자리</button>
+    </div>
+    <p class="sim-note" style="font-size:12.5px;color:var(--ink-soft);margin-top:10px;">※ 실제 태양계는 나선팔을 따라 위치하지만, 이 시뮬레이션에서는 은하 중심에서부터의 거리만 단순화하여 보여준다.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">4</span>학생 정보</h2>
+    <div class="id-row">
+      <div class="field field-narrow">
+        <label for="stuClass">반</label>
+        <input type="number" id="stuClass" placeholder="예: 9" min="1" inputmode="numeric" autocomplete="off">
+      </div>
+      <div class="field field-narrow">
+        <label for="stuNumber">번호</label>
+        <input type="number" id="stuNumber" placeholder="예: 1" min="1" inputmode="numeric" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="stuName">이름</label>
+        <input type="text" id="stuName" placeholder="예: 홍길동" autocomplete="off">
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">5</span>개념정리 · 우리은하</h2>
+
+    <div class="fill-row">
+      (1) 우리은하의 지름은 약
+      <select class="blank" id="blankDiameter"><option value="">-선택-</option><option value="3kpc">3 kpc</option><option value="30kpc">30 kpc</option><option value="300kpc">300 kpc</option></select>
+      이다.
+    </div>
+    <div class="fill-row">
+      (2) 우리은하에는 약
+      <select class="blank" id="blankStarCount"><option value="">-선택-</option><option value="200억">200억 개</option><option value="2000억">2000억 개</option><option value="2조">2조 개</option></select>
+      의 별이 있다.
+    </div>
+    <div class="fill-row">
+      (3) 태양계는 은하 중심에서 약
+      <select class="blank" id="blankSunDist"><option value="">-선택-</option><option value="0kpc">0 kpc</option><option value="8.5kpc">8.5 kpc</option><option value="30kpc">30 kpc</option></select>
+      떨어진 나선팔에 위치한다.
+    </div>
+    <div class="fill-row">
+      (4) 우리은하를 위에서 보면
+      <select class="blank" id="blankTopShape"><option value="">-선택-</option><option value="나선">나선(막대나선) 모양</option><option value="원">원 모양</option><option value="타원">타원 모양</option></select>
+      이고, 옆에서 보면
+      <select class="blank" id="blankSideShape"><option value="">-선택-</option><option value="공">공 모양</option><option value="원반">납작한 원반 모양</option><option value="막대">막대 모양</option></select>
+      이다.
+    </div>
+    <button class="check-btn" id="checkConceptGalaxy">정답 확인</button>
+    <span class="check-result" id="resultConceptGalaxy"></span>
+  </section>
+
+  <section>
+    <h2><span class="num">6</span>확인 문제</h2>
+
+    <p style="font-size:14.5px; margin:0 0 8px;"><b>문제 1.</b> 지구에서 은하수를 관측할 때, 궁수자리 방향의 은하수가 다른 방향보다 폭이 넓고 뚜렷하게 보이는 까닭으로 옳은 것은?</p>
+    <div class="option-list">
+      <label><input type="radio" name="q1opt" value="1"> ① 그 방향이 은하 중심 방향이기 때문이다.</label>
+      <label><input type="radio" name="q1opt" value="2"> ② 그 방향이 은하 가장자리 방향이기 때문이다.</label>
+      <label><input type="radio" name="q1opt" value="3"> ③ 그 방향에 태양계가 있기 때문이다.</label>
+      <label><input type="radio" name="q1opt" value="4"> ④ 그 방향의 별이 다른 별보다 온도가 높기 때문이다.</label>
+    </div>
+    <button class="check-btn" id="checkQ1">정답 확인</button>
+    <span class="check-result" id="resultQ1"></span>
+
+    <p style="font-size:14.5px; margin:24px 0 8px;"><b>문제 2.</b> 우리은하에 대한 설명으로 옳은 것을 모두 고르시오.</p>
+    <div class="option-list">
+      <label><input type="checkbox" id="q2a"> ㄱ. 태양계가 속해 있는 은하이다.</label>
+      <label><input type="checkbox" id="q2b"> ㄴ. 태양계는 우리은하의 정중앙에 위치한다.</label>
+      <label><input type="checkbox" id="q2c"> ㄷ. 옆에서 보면 납작한 원반 모양이고, 중심부가 부풀어 있다.</label>
+    </div>
+    <button class="check-btn" id="checkQ2">정답 확인</button>
+    <span class="check-result" id="resultQ2"></span>
+
+    <p style="font-size:14.5px; margin:24px 0 8px;"><b>옳으면 O, 옳지 않으면 X를 골라 보자.</b></p>
+    <div class="fill-row">
+      1. 은하수는 우리은하를 태양계(안쪽)에서 바라본 모습이다.
+      <span class="toggle-group" id="ox1Group">
+        <button type="button" class="toggle-opt" data-value="O">O</button>
+        <button type="button" class="toggle-opt" data-value="X">X</button>
+      </span>
+      <input type="hidden" id="ox1">
+    </div>
+    <div class="fill-row">
+      2. 우리은하를 위에서 보면 나선팔이 있는 막대나선 모양이다.
+      <span class="toggle-group" id="ox2Group">
+        <button type="button" class="toggle-opt" data-value="O">O</button>
+        <button type="button" class="toggle-opt" data-value="X">X</button>
+      </span>
+      <input type="hidden" id="ox2">
+    </div>
+    <button class="check-btn" id="checkOX">정답 확인</button>
+    <span class="check-result" id="resultOX"></span>
+  </section>
+
+  <section>
+    <button class="submit-btn" id="submitBtn">답안 제출하기</button>
+    <div class="status" id="statusBox"></div>
+  </section>
+
+</main>
+
+<footer>제출한 답은 선생님이 확인 후 개별 피드백을 남깁니다.</footer>
+
+<script>
+  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyvWvjHdOgmzIA3pha45ZpF1kB0duIKzch8MSod3P_kMIMiPbaYxafRYkUa6DpAbmp5/exec";
+
+  const $ = (id) => document.getElementById(id);
+  const svgNS = "http://www.w3.org/2000/svg";
+  function showResult(el, ok, correctMsg, wrongMsg){
+    el.className = 'check-result ' + (ok ? 'correct' : 'wrong');
+    el.textContent = ok ? ('✓ ' + correctMsg) : ('✗ ' + wrongMsg);
+  }
+  function setupToggle(groupId, hiddenId){
+    const group = $(groupId);
+    const hidden = $(hiddenId);
+    group.querySelectorAll('.toggle-opt').forEach(btn => {
+      btn.addEventListener('click', () => {
+        group.querySelectorAll('.toggle-opt').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        hidden.value = btn.dataset.value;
+      });
+    });
+  }
+
+  // ── 1. 복습 ──
+  setupToggle('reviewBetelGroup','reviewBetel');
+  $('checkReview').addEventListener('click', () => {
+    const ok = $('reviewAbsMag').value.trim() === '3' && $('reviewBetel').value === '낮은';
+    showResult($('resultReview'), ok,
+      '모두 맞았어요. 거리 10 pc에서는 겉보기 등급과 절대 등급이 같습니다(3등급). 베텔게우스는 적색이므로 태양보다 표면 온도가 낮습니다.',
+      '다시 확인해 보세요: 10 pc 거리에서는 겉보기 등급 = 절대 등급이므로 답은 "3"입니다. 또한 적색 별은 태양(황색)보다 표면 온도가 "낮은" 별입니다.');
+  });
+
+  // ── 3. 우리은하 시뮬레이션 ──
+  function buildTopArms(){
+    const g = $('topArms');
+    const colors = ['#7FB0E0', '#7FB0E0'];
+    [0, 180].forEach((rot, i) => {
+      const path = document.createElementNS(svgNS,'path');
+      const rad = rot * Math.PI/180;
+      let d = 'M320,170 ';
+      for(let t=0; t<=1; t+=0.05){
+        const angle = rad + t*2.4;
+        const r = 20 + t*260;
+        const x = 320 + r*Math.cos(angle);
+        const y = 170 + r*Math.sin(angle)*0.4;
+        d += `L${x.toFixed(1)},${y.toFixed(1)} `;
+      }
+      path.setAttribute('d', d);
+      path.setAttribute('fill','none');
+      path.setAttribute('stroke', colors[i]);
+      path.setAttribute('stroke-width', 16);
+      path.setAttribute('stroke-linecap','round');
+      path.setAttribute('opacity', 0.35);
+      g.appendChild(path);
+    });
+  }
+  buildTopArms();
+
+  const GD_MIN = 0, GD_MAX = 15;
+  function updateGalaxy(d){
+    const frac = (d - GD_MIN) / (GD_MAX - GD_MIN);
+
+    // 위에서 본 모습: 나선팔(각도 0 방향)을 따라 바깥쪽으로 이동
+    const angle = 0 + frac*2.4;
+    const r = 20 + frac*260;
+    const tx = 320 + r*Math.cos(angle);
+    const ty = 170 + r*Math.sin(angle)*0.4;
+    $('topMarker').setAttribute('cx', tx);
+    $('topMarker').setAttribute('cy', ty);
+    $('topRadiusLine').setAttribute('x2', tx);
+    $('topRadiusLine').setAttribute('y2', ty);
+    const topLabel = $('topMarkerLabel');
+    topLabel.setAttribute('x', tx);
+    topLabel.setAttribute('y', ty - 14);
+    topLabel.textContent = d === 0 ? '은하 중심' : (Math.abs(d-8.5)<0.01 ? '태양계' : `${d} kpc`);
+
+    // 옆에서 본 모습: 원반을 따라 수평 이동
+    const sx = 320 + frac*250*(1) ; // 오른쪽으로 이동(대칭 구조이므로 방향은 임의)
+    const sxClamped = Math.min(570, sx);
+    $('sideMarker').setAttribute('cx', sxClamped);
+    $('sideMarker').setAttribute('cy', 127);
+    $('sideRadiusLine').setAttribute('x1', sxClamped);
+    $('sideRadiusLine').setAttribute('x2', sxClamped);
+    $('sideRadiusLine').setAttribute('y1', 100);
+    $('sideRadiusLine').setAttribute('y2', 127);
+    const sideLabel = $('sideMarkerLabel');
+    sideLabel.setAttribute('x', sxClamped);
+    sideLabel.textContent = d === 0 ? '은하 중심' : (Math.abs(d-8.5)<0.01 ? '태양계' : `${d} kpc`);
+
+    $('galaxyDistReadout').textContent = `${d} kpc`;
+  }
+  $('galaxyDist').addEventListener('input', e => updateGalaxy(Number(e.target.value)));
+  updateGalaxy(Number($('galaxyDist').value));
+
+  document.querySelectorAll('.dist-preset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      $('galaxyDist').value = btn.dataset.d;
+      updateGalaxy(Number(btn.dataset.d));
+    });
+  });
+
+  document.querySelectorAll('.view-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const isTop = btn.dataset.view === 'top';
+      $('topViewWrap').style.display = isTop ? '' : 'none';
+      $('sideViewWrap').style.display = isTop ? 'none' : '';
+    });
+  });
+
+  // ── 5. 개념정리 ──
+  $('checkConceptGalaxy').addEventListener('click', () => {
+    const ok = $('blankDiameter').value === '30kpc' &&
+               $('blankStarCount').value === '2000억' &&
+               $('blankSunDist').value === '8.5kpc' &&
+               $('blankTopShape').value === '나선' &&
+               $('blankSideShape').value === '원반';
+    showResult($('resultConceptGalaxy'), ok,
+      '모두 맞았어요. 우리은하는 지름 약 30 kpc, 별 약 2000억 개, 태양계는 은하 중심에서 8.5 kpc 떨어진 나선팔에 위치하며, 위에서 보면 나선(막대나선) 모양, 옆에서 보면 납작한 원반 모양입니다.',
+      '다시 확인해 보세요: 지름 30 kpc / 별 2000억 개 / 태양계-은하중심 거리 8.5 kpc / 위에서 본 모양은 나선(막대나선) / 옆에서 본 모양은 납작한 원반입니다.');
+  });
+
+  // ── 6. 확인 문제 ──
+  $('checkQ1').addEventListener('click', () => {
+    const sel = document.querySelector('input[name=q1opt]:checked');
+    const ok = sel && sel.value === '1';
+    showResult($('resultQ1'), ok,
+      '정답은 ① 은하 중심 방향이기 때문입니다. 별이 밀집된 은하 중심 방향을 볼 때 은하수가 더 넓고 뚜렷하게 보입니다.',
+      '다시 확인해 보세요: 궁수자리 방향은 은하 중심 방향이며, 별이 많이 밀집되어 있어 은하수가 더 뚜렷하게 보입니다.');
+  });
+
+  $('checkQ2').addEventListener('click', () => {
+    const checked = ['q2a','q2b','q2c'].filter(id => $(id).checked);
+    const ok = checked.length===2 && checked.includes('q2a') && checked.includes('q2c');
+    showResult($('resultQ2'), ok,
+      '정답은 ㄱ, ㄷ입니다. 태양계는 은하 중심이 아니라 중심에서 약 8.5 kpc 떨어진 나선팔에 위치합니다.',
+      '다시 확인해 보세요: 정답은 ㄱ, ㄷ입니다. 태양계는 은하 "중심"이 아니라 나선팔에 위치합니다(ㄴ은 틀림).');
+  });
+
+  setupToggle('ox1Group','ox1');
+  setupToggle('ox2Group','ox2');
+  $('checkOX').addEventListener('click', () => {
+    const ok = $('ox1').value==='O' && $('ox2').value==='O';
+    showResult($('resultOX'), ok,
+      '모두 맞았어요. (O, O)',
+      '다시 확인해 보세요: 두 문장 모두 옳은 설명입니다(O, O).');
+  });
+
+  // ── 제출 ──
+  $('submitBtn').addEventListener('click', async () => {
+    const q1 = document.querySelector('input[name=q1opt]:checked');
+    const payload = {
+      form: 'galaxy',
+      stuClass: $('stuClass').value.trim(),
+      stuNumber: $('stuNumber').value.trim(),
+      name: $('stuName').value.trim(),
+
+      reviewAbsMag: $('reviewAbsMag').value.trim(),
+      reviewBetel: $('reviewBetel').value,
+      reviewKilnReason: $('reviewKilnReason').value.trim(),
+
+      blankDiameter: $('blankDiameter').value,
+      blankStarCount: $('blankStarCount').value,
+      blankSunDist: $('blankSunDist').value,
+      blankTopShape: $('blankTopShape').value,
+      blankSideShape: $('blankSideShape').value,
+
+      q1Selected: q1 ? q1.value : '',
+      q2Selected: ['q2a','q2b','q2c'].filter(id => $(id).checked).join(','),
+
+      ox1: $('ox1').value, ox2: $('ox2').value,
+
+      submittedAt: new Date().toISOString()
+    };
+
+    const statusBox = $('statusBox');
+    const btn = $('submitBtn');
+
+    if(!payload.name || !payload.stuClass || !payload.stuNumber){
+      statusBox.className = 'status show error';
+      statusBox.textContent = '반, 번호, 이름을 모두 입력해 주세요.';
+      return;
+    }
+    if(!payload.reviewKilnReason){
+      statusBox.className = 'status show error';
+      statusBox.textContent = '1번 창의적 사고력 서술형 질문에 답을 작성해 주세요.';
+      return;
+    }
+
+    btn.disabled = true;
+    statusBox.className = 'status show sending';
+    statusBox.textContent = '제출하는 중입니다...';
+
+    try{
+      await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+      statusBox.className = 'status show success';
+      statusBox.textContent = '제출 완료! 선생님이 확인 후 피드백을 남길 예정입니다.';
+      btn.textContent = '제출 완료';
+    }catch(err){
+      statusBox.className = 'status show error';
+      statusBox.textContent = '제출 중 오류가 발생했습니다. 네트워크를 확인하고 다시 시도해 주세요.';
+      btn.disabled = false;
+    }
+  });
+</script>
+
+</body>
+</html>
