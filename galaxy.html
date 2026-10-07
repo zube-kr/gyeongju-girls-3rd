@@ -163,6 +163,29 @@
     font-family:'Noto Sans KR',sans-serif;
   }
   .fig-caption{ font-size:12.5px; color:var(--ink-soft); margin:6px 0 0; }
+  .g3d-controls{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:10px 0 4px; }
+  .g3d-controls .sep{ width:1px; height:22px; background:var(--paper-line); margin:0 2px; }
+  .g3d-controls label{ font-size:13.5px; display:inline-flex; gap:6px; align-items:center; cursor:pointer; }
+  .toggle-opt.primary{ background:var(--night); color:var(--star-soft); border-color:var(--night); font-weight:700; }
+  .galaxy3d-wrap{
+    position:relative; background:#03040c; border-radius:10px; overflow:hidden;
+    margin:12px 0; aspect-ratio:16/10; touch-action:none; cursor:grab; user-select:none;
+  }
+  .galaxy3d-wrap:active{ cursor:grabbing; }
+  .galaxy3d-wrap canvas{ width:100%; height:100%; display:block; }
+  .g3d-hud{ position:absolute; top:10px; left:14px; color:#F3DFA0; font-weight:700; font-size:16px; text-shadow:0 1px 3px #000; }
+  .g3d-sub{ position:absolute; top:36px; left:14px; color:#C9CEE0; font-size:12.5px; text-shadow:0 1px 3px #000; }
+  .g3d-hint{ position:absolute; bottom:8px; right:12px; color:#8A93A8; font-size:11.5px; }
+  .observe-box{ background:#F3F0E6; border-radius:10px; padding:12px 16px; font-size:13.5px; margin-top:12px; }
+  .observe-box ol{ margin:6px 0 0; padding-left:20px; }
+  .observe-box li{ margin-bottom:5px; }
+  @media (max-width:520px){
+    .galaxy3d-wrap{ aspect-ratio:1/1; }
+    .g3d-controls .sep{ display:none; }
+    .g3d-hud{ font-size:14px; }
+    .g3d-sub{ font-size:11px; top:31px; }
+  }
+
 
   .teacher-note{
     font-size:12.5px; color:var(--ink-soft); background:#F3F0E6;
@@ -305,7 +328,45 @@
   </section>
 
   <section>
-    <h2><span class="num">4</span>학생 정보</h2>
+    <h2><span class="num">4</span>3D 시뮬레이션 · 나선팔은 왜 감겨서 사라지지 않을까?</h2>
+    <p class="hint">은하 안쪽의 별은 바깥쪽의 별보다 더 빨리 돈다. 만약 나선팔이 늘 같은 별들로 이루어져 있다면, 시간이 지날수록 나선팔은 점점 감겨서 사라져야 한다. 그런데 실제 은하의 나선팔은 수십억 년이 지나도 모양이 유지된다. 아래에서 두 경우를 골라 <b>실행</b>을 눌러 비교해 보자.</p>
+
+    <div class="g3d-controls">
+      <button type="button" class="toggle-opt g3d-mode active" data-mode="wave">실제 은하 (밀도파)</button>
+      <button type="button" class="toggle-opt g3d-mode" data-mode="material">별이 나선팔에 붙어서 돈다면?</button>
+    </div>
+
+    <div class="galaxy3d-wrap" id="galaxy3dWrap">
+      <canvas id="galaxy3d" aria-label="회전하는 우리은하 3D 시뮬레이션"></canvas>
+      <div class="g3d-hud" id="g3dTime">경과 시간: 0억 년</div>
+      <div class="g3d-sub" id="g3dSub"></div>
+      <div class="g3d-hint">드래그하면 보는 각도를 바꿀 수 있어요</div>
+    </div>
+
+    <div class="g3d-controls">
+      <button type="button" class="toggle-opt primary" id="g3dPlay">▶ 실행</button>
+      <button type="button" class="toggle-opt" id="g3dReset">↺ 처음으로</button>
+      <span class="sep"></span>
+      <button type="button" class="toggle-opt g3d-speed" data-speed="25">느리게</button>
+      <button type="button" class="toggle-opt g3d-speed active" data-speed="80">보통</button>
+      <button type="button" class="toggle-opt g3d-speed" data-speed="250">빠르게</button>
+      <span class="sep"></span>
+      <label><input type="checkbox" id="g3dCorot"> 나선팔과 함께 돌면서 보기</label>
+    </div>
+
+    <div class="observe-box">
+      <b>관찰 포인트</b>
+      <ol>
+        <li><b>별이 나선팔에 붙어서 돈다면?</b>을 실행하면, 안쪽 별이 바깥쪽 별보다 빨리 돌기 때문에 나선팔이 점점 감겨 몇억 년 만에 촘촘한 고리처럼 뭉개진다.</li>
+        <li><b>실제 은하(밀도파)</b>를 실행하면, 노란색 <b>태양</b>은 나선팔에 들어갔다가 빠져나오기를 반복하지만 나선팔의 모양은 수십억 년 동안 그대로 유지된다.</li>
+        <li>나선팔은 별들이 지나가다가 잠시 느려져서 빽빽하게 모이는 <b>"교통 체증 구간"</b>이다. 고속도로 정체 구간에서 차는 계속 바뀌어도 정체 구간은 남아 있는 것과 같다. <b>나선팔과 함께 돌면서 보기</b>를 켜면 별들이 나선팔을 통과해 흘러가는 모습을 볼 수 있다.</li>
+        <li>나선팔에서는 가스가 압축되어 새로운 별이 태어난다. 밝고 푸른 젊은 별은 수명이 짧아 나선팔을 벗어나기 전에 사라지므로, 나선팔이 더 밝고 푸르게 보인다.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">5</span>학생 정보</h2>
     <div class="id-row">
       <div class="field field-narrow">
         <label for="stuClass">반</label>
@@ -323,7 +384,7 @@
   </section>
 
   <section>
-    <h2><span class="num">5</span>개념정리 · 우리은하</h2>
+    <h2><span class="num">6</span>개념정리 · 우리은하</h2>
 
     <div class="fill-row">
       (1) 우리은하의 지름은 약
@@ -352,7 +413,7 @@
   </section>
 
   <section>
-    <h2><span class="num">6</span>확인 문제</h2>
+    <h2><span class="num">7</span>확인 문제</h2>
 
     <p style="font-size:14.5px; margin:0 0 8px;"><b>문제 1.</b> 지구에서 은하수를 관측할 때, 궁수자리 방향의 은하수가 다른 방향보다 폭이 넓고 뚜렷하게 보이는 까닭으로 옳은 것은?</p>
     <div class="option-list">
@@ -673,7 +734,294 @@
     });
   });
 
-  // ── 5. 개념정리 ──
+  // ── 4. 3D 회전 시뮬레이션: 나선팔은 왜 유지될까? ──
+  // 밀도파 모형(운동학적 모형): 각 별은 원 대신 살짝 찌그러진 고리 모양 궤도를
+  // 돌고, 반지름이 커질수록 궤도의 방향이 조금씩 돌아가 있다. 이 궤도들이 촘촘히
+  // 겹치는 곳(별이 느려지며 몰리는 곳)이 나선팔이 되고, 이 무늬 전체는 별들보다
+  // 느린 일정한 속도(OMEGA_P)로 돌기 때문에 감기지 않는다.
+  (function(){
+    const canvas = $('galaxy3d'), wrap = $('galaxy3dWrap');
+    const ctx = canvas.getContext('2d');
+
+    const V = 0.225;                 // 공전 속도 220 km/s ≈ 0.225 kpc/백만 년
+    const CORE = 1.0;                // 중심부에서 속도가 0으로 줄어드는 반지름(kpc)
+    const OMEGA_P = V / 14;          // 나선팔 무늬의 회전 각속도(14 kpc에서 별과 같은 속도)
+    const TAN_P = Math.tan(20 * Math.PI/180);
+    const R_IN = 2, R_OUT = 15, SUN_A = 8.5, END_MYR = 10000, TRAIL_MYR = 300;
+    const omega = a => V / Math.sqrt(a*a + CORE*CORE);
+    const phiOf = a => Math.log(a / R_IN) / TAN_P;
+
+    const N_DISK = 30000, N_BULGE = 3500, N = N_DISK + N_BULGE;
+    const A = new Float32Array(N), E = new Float32Array(N), PHI = new Float32Array(N);
+    const TH_INIT = new Float32Array(N), TH = new Float64Array(N);
+    const R0 = new Float32Array(N), Z = new Float32Array(N), BR = new Float32Array(N);
+    const BASE = new Float32Array(N*3), YOUNG0 = new Float32Array(N);
+
+    (function initStars(){
+      const rand = mulberry32(85002026), gauss = makeGauss(rand);
+      const SCALE_LEN = 4.5;
+      const span = 1 - Math.exp(-(R_OUT - R_IN) / SCALE_LEN);
+      for(let i=0; i<N_DISK; i++){
+        const a = R_IN - SCALE_LEN*Math.log(1 - rand()*span);
+        const e = 0.16 + rand()*0.08;
+        const phi = phiOf(a) + gauss()*0.05;
+        // 느리게 지나가는 곳(궤도의 바깥쪽)에 별이 더 오래 머물도록 위치를 뽑는다.
+        let th, r;
+        do {
+          th = rand()*Math.PI*2;
+          r = a*(1 + e*Math.cos(2*(th - phi)));
+        } while(rand() > (r*r)/(a*a*(1+e)*(1+e)));
+        A[i] = a; E[i] = e; PHI[i] = phi; TH_INIT[i] = th;
+        Z[i] = gauss()*0.16;
+        BR[i] = 0.32 + rand()*0.45;
+        BASE[i*3] = 0.72 + rand()*0.2; BASE[i*3+1] = 0.8 + rand()*0.15; BASE[i*3+2] = 1;
+      }
+      for(let i=N_DISK; i<N; i++){
+        const x = gauss()*1.1, y = gauss()*1.1;
+        A[i] = Math.max(0.05, Math.hypot(x, y)); E[i] = 0; PHI[i] = 0;
+        TH_INIT[i] = Math.atan2(y, x);
+        Z[i] = gauss()*0.8;
+        BR[i] = 0.3 + rand()*0.35;
+        BASE[i*3] = 1; BASE[i*3+1] = 0.8 + rand()*0.1; BASE[i*3+2] = 0.55 + rand()*0.15;
+      }
+      // 0번 별 = 태양: 두 나선팔 사이에서 출발
+      A[0] = SUN_A; E[0] = 0.18; PHI[0] = phiOf(SUN_A);
+      TH_INIT[0] = PHI[0] + Math.PI/2; Z[0] = 0;
+      for(let i=0; i<N; i++){
+        R0[i] = A[i]*(1 + E[i]*Math.cos(2*(TH_INIT[i] - PHI[i])));
+        YOUNG0[i] = i < N_DISK ? youth(TH_INIT[i], PHI[i]) : 0;
+      }
+    })();
+
+    // 나선팔(별이 몰리는 곳) 근처에서 새로 태어난 푸른 별을 표현하기 위한 값(0~1)
+    function youth(th, phi){
+      const c = Math.cos(2*(th - phi));
+      return c > 0.72 ? (c - 0.72) / 0.28 : 0;
+    }
+
+    let mode = 'wave', playing = false, speed = 80, corot = false;
+    let t = 0, yaw = 0.6, tilt = 0.95, dirty = true;
+    let trail = [];
+
+    function reset(){
+      TH.set(TH_INIT);
+      t = 0; trail = []; dirty = true;
+      setPlaying(false);
+    }
+
+    function step(dt){
+      const n = Math.max(1, Math.ceil(dt / 1.5)), h = dt / n;
+      for(let k=0; k<n; k++){
+        t += h;
+        if(mode !== 'wave') continue;
+        for(let i=0; i<N; i++){
+          const a = A[i];
+          const r = a*(1 + E[i]*Math.cos(2*(TH[i] - PHI[i])));
+          const q = a / r;
+          TH[i] += (omega(a) - OMEGA_P) * q * q * h;
+        }
+      }
+      if(t >= END_MYR){ t = END_MYR; setPlaying(false); }
+    }
+
+    // 별 i의 현재 위치(반지름, 실제 공간에서의 각도)
+    function polar(i){
+      if(mode === 'wave'){
+        return [A[i]*(1 + E[i]*Math.cos(2*(TH[i] - PHI[i]))), TH[i] + OMEGA_P*t];
+      }
+      return [R0[i], TH_INIT[i] + omega(R0[i])*t];
+    }
+
+    let W = 0, H = 0, img = null, bgData = null, acc = null, touched = null;
+    const LUT = new Float32Array(2048);
+    for(let k=0; k<2048; k++) LUT[k] = 255 * (1 - Math.exp(-k / 2048 * 10 * 0.95));
+
+    function resize(){
+      const cssW = wrap.clientWidth;
+      if(!cssW) return;
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      W = Math.round(cssW * dpr); H = Math.round(wrap.clientHeight * dpr);
+      canvas.width = W; canvas.height = H;
+      img = ctx.createImageData(W, H);
+      acc = new Float32Array(W*H*3);
+      touched = new Int32Array(N);
+      bgData = new Uint8ClampedArray(W*H*4);
+      const rand = mulberry32(31337);
+      for(let p=0; p<W*H; p++){ bgData[p*4] = 3; bgData[p*4+1] = 4; bgData[p*4+2] = 12; bgData[p*4+3] = 255; }
+      for(let k=0; k<Math.round(W*H/900); k++){
+        const p = (Math.floor(rand()*H)*W + Math.floor(rand()*W))*4, v = 60 + rand()*140;
+        bgData[p] = v; bgData[p+1] = v; bgData[p+2] = v + 20;
+      }
+      dirty = true;
+    }
+
+    function render(){
+      if(!img) return;
+      const scale = Math.min(W, H*1.6) * 0.42 / R_OUT, D = 45;
+      const cx = W/2, cy = H/2;
+      const cT = Math.cos(tilt), sT = Math.sin(tilt);
+      const frameRot = corot ? -OMEGA_P*t : 0;
+      let nTouched = 0;
+
+      const wave = mode === 'wave', pt = OMEGA_P*t;
+      for(let i=1; i<N; i++){
+        let r, th;
+        if(wave){ r = A[i]*(1 + E[i]*Math.cos(2*(TH[i] - PHI[i]))); th = TH[i] + pt; }
+        else { r = R0[i]; th = TH_INIT[i] + omega(r)*t; }
+        const ang = th + frameRot + yaw;
+        const x = r*Math.cos(ang), y = r*Math.sin(ang), z = Z[i];
+        const y2 = y*cT - z*sT, z2 = y*sT + z*cT;
+        const k = D / (D - z2);
+        const px = (cx + x*scale*k) | 0, py = (cy + y2*scale*k) | 0;
+        if(px < 0 || py < 0 || px >= W || py >= H) continue;
+        const yv = i < N_DISK ? (wave ? youth(TH[i], PHI[i]) : YOUNG0[i]) : 0;
+        const b = BR[i] * (1 + 2*yv);
+        const idx = (py*W + px)*3;
+        if(acc[idx] === 0 && acc[idx+1] === 0 && acc[idx+2] === 0) touched[nTouched++] = idx;
+        acc[idx]   += b*(BASE[i*3]   + 0.15*yv);
+        acc[idx+1] += b*(BASE[i*3+1] + 0.35*yv);
+        acc[idx+2] += b*(BASE[i*3+2] + 0.9*yv);
+      }
+
+      const out = img.data;
+      out.set(bgData);
+      for(let n=0; n<nTouched; n++){
+        const idx = touched[n], p = (idx/3)*4;
+        out[p]   = Math.min(255, out[p]   + LUT[Math.min(2047, (acc[idx]*204.8)|0)]);
+        out[p+1] = Math.min(255, out[p+1] + LUT[Math.min(2047, (acc[idx+1]*204.8)|0)]);
+        out[p+2] = Math.min(255, out[p+2] + LUT[Math.min(2047, (acc[idx+2]*204.8)|0)]);
+        acc[idx] = 0; acc[idx+1] = 0; acc[idx+2] = 0;
+      }
+      ctx.putImageData(img, 0, 0);
+
+      // 원반과 중심부의 은은한 빛
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.translate(cx, cy);
+      ctx.save();
+      ctx.scale(1, Math.max(0.08, cT));
+      let grd = ctx.createRadialGradient(0, 0, 0, 0, 0, R_OUT*scale);
+      grd.addColorStop(0, 'rgba(255,220,170,0.22)');
+      grd.addColorStop(0.4, 'rgba(120,140,220,0.08)');
+      grd.addColorStop(1, 'rgba(60,70,140,0)');
+      ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(0, 0, R_OUT*scale, 0, Math.PI*2); ctx.fill();
+      ctx.restore();
+      grd = ctx.createRadialGradient(0, 0, 0, 0, 0, 3*scale);
+      grd.addColorStop(0, 'rgba(255,245,220,0.85)');
+      grd.addColorStop(0.35, 'rgba(255,205,140,0.35)');
+      grd.addColorStop(1, 'rgba(255,170,90,0)');
+      ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(0, 0, 3*scale, 0, Math.PI*2); ctx.fill();
+      ctx.restore();
+
+      // 태양과 그 지나온 길
+      const project = (r, ang, z) => {
+        const x = r*Math.cos(ang), y = r*Math.sin(ang);
+        const y2 = y*cT - z*sT, z2 = y*sT + z*cT, k = D / (D - z2);
+        return [cx + x*scale*k, cy + y2*scale*k];
+      };
+      const unit = W / wrap.clientWidth;
+      if(trail.length > 1){
+        ctx.beginPath();
+        trail.forEach(([r, ang], j) => {
+          const [sx, sy] = project(r, ang + yaw, 0);
+          j === 0 ? ctx.moveTo(sx, sy) : ctx.lineTo(sx, sy);
+        });
+        ctx.strokeStyle = 'rgba(255,215,106,0.55)';
+        ctx.lineWidth = 1.5*unit;
+        ctx.stroke();
+      }
+      const [sr, sth] = polar(0);
+      const [sx, sy] = project(sr, sth + frameRot + yaw, 0);
+      ctx.fillStyle = '#FFD76A';
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5*unit;
+      ctx.beginPath(); ctx.arc(sx, sy, 4.5*unit, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+      ctx.font = `700 ${13*unit}px 'Noto Sans KR', sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.lineWidth = 3*unit; ctx.strokeStyle = 'rgba(3,4,12,0.85)';
+      ctx.strokeText('태양', sx, sy - 10*unit);
+      ctx.fillStyle = '#fff';
+      ctx.fillText('태양', sx, sy - 10*unit);
+
+      updateHud();
+      dirty = false;
+    }
+
+    function recordTrail(){
+      const [r, th] = polar(0);
+      trail.push([r, th + (corot ? -OMEGA_P*t : 0), t]);
+      while(trail.length && t - trail[0][2] > TRAIL_MYR) trail.shift();
+    }
+
+    function fmtYears(myr){ return (myr / 100).toFixed(myr < 1000 ? 1 : 0) + '억 년'; }
+    function turns(rad){ return (rad / (2*Math.PI)).toFixed(1); }
+    function updateHud(){
+      $('g3dTime').textContent = `경과 시간: ${fmtYears(t)}` + (t >= END_MYR ? ' (끝)' : '');
+      if(mode === 'wave'){
+        const sunTurns = turns(TH[0] - TH_INIT[0] + OMEGA_P*t);
+        $('g3dSub').textContent = `태양 공전 ${sunTurns}바퀴 · 나선팔 무늬 회전 ${turns(OMEGA_P*t)}바퀴`;
+      } else {
+        $('g3dSub').textContent = `안쪽 별(4 kpc) ${turns(omega(4)*t)}바퀴 · 바깥쪽 별(14 kpc) ${turns(omega(14)*t)}바퀴`;
+      }
+    }
+
+    function setPlaying(on){
+      playing = on && t < END_MYR;
+      $('g3dPlay').textContent = playing ? '⏸ 일시정지' : '▶ 실행';
+    }
+
+    let last = 0;
+    function frame(ts){
+      const dtReal = last ? Math.min(0.05, (ts - last) / 1000) : 0;
+      last = ts;
+      if(playing){
+        step(dtReal * speed);
+        recordTrail();
+        dirty = true;
+      }
+      if(dirty) render();
+      requestAnimationFrame(frame);
+    }
+
+    $('g3dPlay').addEventListener('click', () => {
+      if(t >= END_MYR) reset();
+      setPlaying(!playing);
+    });
+    $('g3dReset').addEventListener('click', reset);
+    document.querySelectorAll('.g3d-mode').forEach(btn => btn.addEventListener('click', () => {
+      document.querySelectorAll('.g3d-mode').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      mode = btn.dataset.mode;
+      reset();
+    }));
+    document.querySelectorAll('.g3d-speed').forEach(btn => btn.addEventListener('click', () => {
+      document.querySelectorAll('.g3d-speed').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      speed = Number(btn.dataset.speed);
+    }));
+    $('g3dCorot').addEventListener('change', e => { corot = e.target.checked; trail = []; dirty = true; });
+
+    let drag = null;
+    wrap.addEventListener('pointerdown', e => {
+      drag = { x: e.clientX, y: e.clientY, yaw, tilt };
+      wrap.setPointerCapture(e.pointerId);
+    });
+    wrap.addEventListener('pointermove', e => {
+      if(!drag) return;
+      yaw = drag.yaw + (e.clientX - drag.x) * 0.008;
+      tilt = Math.min(1.45, Math.max(0, drag.tilt + (e.clientY - drag.y) * 0.006));
+      dirty = true;
+    });
+    const endDrag = () => { drag = null; };
+    wrap.addEventListener('pointerup', endDrag);
+    wrap.addEventListener('pointercancel', endDrag);
+
+    new ResizeObserver(resize).observe(wrap);
+    reset();
+    resize();
+    requestAnimationFrame(frame);
+  })();
+
+  // ── 6. 개념정리 ──
   $('checkConceptGalaxy').addEventListener('click', () => {
     const ok = $('blankDiameter').value === '30kpc' &&
                $('blankStarCount').value === '2000억' &&
@@ -685,7 +1033,7 @@
       '다시 확인해 보세요: 지름 30 kpc / 별 2000억 개 / 태양계-은하중심 거리 8.5 kpc / 위에서 본 모양은 나선(막대나선) / 옆에서 본 모양은 납작한 원반입니다.');
   });
 
-  // ── 6. 확인 문제 ──
+  // ── 7. 확인 문제 ──
   $('checkQ1').addEventListener('click', () => {
     const sel = document.querySelector('input[name=q1opt]:checked');
     const ok = sel && sel.value === '1';
