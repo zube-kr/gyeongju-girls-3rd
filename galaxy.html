@@ -152,6 +152,17 @@
   .svg-wrap{ background:#0C1224; border-radius:10px; padding:12px; margin:12px 0; }
   .svg-wrap.light{ background:#fff; border:1px solid var(--paper-line); }
   .svg-wrap svg{ width:100%; height:auto; display:block; }
+  .svg-wrap.space{ background:#03040c; padding:0; overflow:hidden; }
+  .gx-label{
+    font-family:'Noto Sans KR',sans-serif; fill:#fff; font-weight:700;
+    paint-order:stroke; stroke:rgba(3,4,12,.85); stroke-width:3px; stroke-linejoin:round;
+  }
+  .gx-pill rect{ fill:rgba(3,4,12,.65); stroke:#E8C468; stroke-width:1.2; }
+  .gx-pill text{
+    fill:#F3DFA0; font-size:14px; font-weight:700; text-anchor:middle;
+    font-family:'Noto Sans KR',sans-serif;
+  }
+  .fig-caption{ font-size:12.5px; color:var(--ink-soft); margin:6px 0 0; }
 
   .teacher-note{
     font-size:12.5px; color:var(--ink-soft); background:#F3F0E6;
@@ -217,23 +228,37 @@
   <section>
     <h2><span class="num">2</span>배움 자료 · 은하수와 우리은하</h2>
     <p class="hint">맑고 어두운 밤하늘을 가로지르는 희미한 빛의 띠를 <b>은하수</b>라고 한다. 우주에는 수많은 별로 이루어진 거대한 천체 집단인 <b>은하</b>가 무수히 많은데, 그중 태양계가 속한 은하를 <b>우리은하</b>라고 한다. 은하수는 우리은하를 안쪽(태양계)에서 바라본 모습이다.</p>
-    <div class="svg-wrap light">
-      <svg viewBox="0 0 640 190" xmlns="http://www.w3.org/2000/svg">
-        <g font-family="Noto Sans KR" font-size="12.5" fill="#1F2430">
-          <ellipse cx="150" cy="90" rx="130" ry="26" fill="#E8C468" opacity="0.85"/>
-          <circle cx="150" cy="90" r="18" fill="#F7D24E"/>
-          <text x="150" y="150" text-anchor="middle" font-weight="700">위에서 본 우리은하</text>
-          <text x="150" y="170" text-anchor="middle" font-size="11.5" fill="#5B6172">막대 모양 중심부 + 나선팔</text>
+    <div class="svg-wrap space">
+      <svg id="galaxyFigure" viewBox="0 0 640 640" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="우리은하의 모양 모식도: 옆에서 본 모양과 위에서 본 모양">
+        <rect width="640" height="640" fill="#03040c"/>
+        <image class="galaxy-side-img" x="0" y="30" width="640" height="180" preserveAspectRatio="none"/>
+        <image class="galaxy-top-img" x="0" y="230" width="640" height="400" preserveAspectRatio="none"/>
+
+        <g class="gx-pill"><rect x="8" y="106" width="128" height="28" rx="14"/><text x="72" y="125">옆에서 본 모양</text></g>
+        <g stroke="#fff" stroke-width="1.2">
+          <line x1="140" y1="56" x2="500" y2="56"/><line x1="140" y1="50" x2="140" y2="62"/><line x1="500" y1="50" x2="500" y2="62"/>
         </g>
-        <g font-family="Noto Sans KR" font-size="12.5" fill="#1F2430">
-          <rect x="380" y="80" width="220" height="18" rx="9" fill="#C9CEE0"/>
-          <ellipse cx="490" cy="89" rx="34" ry="24" fill="#E8C468"/>
-          <text x="490" y="150" text-anchor="middle" font-weight="700">옆에서 본 우리은하</text>
-          <text x="490" y="170" text-anchor="middle" font-size="11.5" fill="#5B6172">납작한 원반 + 부풀어 있는 중심부</text>
+        <text class="gx-label" x="320" y="45" text-anchor="middle" font-size="15">30000 pc (약 10만 광년)</text>
+        <text class="gx-label" x="320" y="82" text-anchor="middle" font-size="15">은하 중심</text>
+        <text class="gx-label" x="455" y="108" text-anchor="middle" font-size="15">은하 원반</text>
+        <circle cx="218" cy="120" r="4" fill="#FFD76A" stroke="#fff" stroke-width="1.2"/>
+        <text class="gx-label" x="218" y="106" text-anchor="middle" font-size="15">태양계</text>
+        <g stroke="#fff" stroke-width="1.1">
+          <line x1="218" y1="152" x2="320" y2="152"/><line x1="218" y1="147" x2="218" y2="157"/><line x1="320" y1="147" x2="320" y2="157"/>
         </g>
+        <text class="gx-label" x="269" y="175" text-anchor="middle" font-size="14">8500 pc (약 3만 광년)</text>
+
+        <line x1="218" y1="125" x2="218" y2="425" stroke="#fff" stroke-width="1.1" stroke-dasharray="4 4" opacity=".75"/>
+
+        <g class="gx-pill"><rect x="8" y="298" width="128" height="28" rx="14"/><text x="72" y="317">위에서 본 모양</text></g>
+        <text class="gx-label" x="320" y="478" text-anchor="middle" font-size="15">은하 중심</text>
+        <text id="figArmLabel" class="gx-label" x="470" y="500" text-anchor="middle" font-size="15">나선팔</text>
+        <circle cx="218" cy="430" r="4.5" fill="#FFD76A" stroke="#fff" stroke-width="1.2"/>
+        <text class="gx-label" x="218" y="453" text-anchor="middle" font-size="15">태양계</text>
       </svg>
     </div>
-    <p class="hint" style="margin-top:14px;">우리은하는 지름이 약 30 kpc이고, 약 2000억 개의 별을 포함하고 있다. 태양계는 은하 중심에서 약 8.5 kpc 떨어진 나선팔에 위치한다. 지구에서 은하수를 보면, 은하 중심 방향(궁수자리 부근)의 은하수가 다른 방향보다 폭이 넓고 뚜렷하게 보인다.</p>
+    <p class="fig-caption">우리은하의 모양(모식도) · 옆에서 본 모양과 위에서 본 모양은 같은 축척으로 그렸다.</p>
+    <p class="hint" style="margin-top:14px;">우리은하는 중심부가 볼록한 원반 모양이다. 중심부에는 막대 모양의 구조가 있고, 막대의 양 끝에서부터 나선팔이 소용돌이 모양으로 휘감고 있다. 우리은하의 지름은 약 30000 pc(30 kpc, 약 10만 광년)이고, 약 2000억 개의 별을 포함하고 있다. 태양계는 은하 중심에서 약 8500 pc(8.5 kpc, 약 3만 광년) 떨어진 나선팔에 위치한다. 태양계가 은하 안쪽에 있기 때문에 지구에서 보면 우리은하가 띠 모양의 은하수로 보이며, 은하 중심 방향(궁수자리 부근)의 은하수가 다른 방향보다 폭이 넓고 뚜렷하게 보인다.</p>
   </section>
 
   <section>
@@ -245,26 +270,24 @@
       <button type="button" class="toggle-opt view-btn" data-view="side">옆에서 본 모습</button>
     </div>
 
-    <div class="svg-wrap light" id="topViewWrap">
-      <svg id="topSvg" viewBox="0 0 640 340" xmlns="http://www.w3.org/2000/svg">
-        <g id="topArms"></g>
-        <ellipse cx="320" cy="170" rx="60" ry="24" fill="#F7D24E" opacity="0.9"/>
-        <circle cx="320" cy="170" r="14" fill="#FCEBAF"/>
-        <line id="topRadiusLine" x1="320" y1="170" x2="320" y2="170" stroke="#B0522F" stroke-width="1.4" stroke-dasharray="4 3"/>
-        <circle id="topMarker" cx="320" cy="170" r="7" fill="#2E6FE0" stroke="#fff" stroke-width="1.5"/>
-        <text id="topMarkerLabel" x="320" y="170" font-family="Noto Sans KR" font-size="12" fill="#1F2430" font-weight="700" text-anchor="middle"></text>
+    <div class="svg-wrap space" id="topViewWrap">
+      <svg id="topSvg" viewBox="110 10 420 380" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="640" height="400" fill="#03040c"/>
+        <image class="galaxy-top-img" x="0" y="0" width="640" height="400" preserveAspectRatio="none"/>
+        <line id="topRadiusLine" x1="320" y1="200" x2="320" y2="200" stroke="#FFB27A" stroke-width="1.6" stroke-dasharray="4 3"/>
+        <circle id="topMarker" cx="320" cy="200" r="6" fill="#FFD76A" stroke="#fff" stroke-width="1.5"/>
+        <text id="topMarkerLabel" class="gx-label" x="320" y="186" text-anchor="middle" font-size="13"></text>
       </svg>
     </div>
 
-    <div class="svg-wrap light" id="sideViewWrap" style="display:none;">
-      <svg id="sideSvg" viewBox="0 0 640 200" xmlns="http://www.w3.org/2000/svg">
-        <rect x="60" y="120" width="520" height="14" rx="7" fill="#C9CEE0"/>
-        <ellipse cx="320" cy="127" rx="46" ry="30" fill="#E8C468"/>
-        <line x1="320" y1="127" x2="320" y2="127" stroke="#8A93A8" stroke-width="1"/>
-        <line id="sideRadiusLine" x1="320" y1="60" x2="320" y2="60" stroke="#B0522F" stroke-width="1.4" stroke-dasharray="4 3"/>
-        <circle id="sideMarker" cx="320" cy="60" r="7" fill="#2E6FE0" stroke="#fff" stroke-width="1.5"/>
-        <text id="sideMarkerLabel" x="320" y="46" font-family="Noto Sans KR" font-size="12" fill="#1F2430" font-weight="700" text-anchor="middle"></text>
-        <text x="320" y="180" font-family="Noto Sans KR" font-size="12" fill="#5B6172" text-anchor="middle">은하 중심에서부터의 거리(kpc)</text>
+    <div class="svg-wrap space" id="sideViewWrap" style="display:none;">
+      <svg id="sideSvg" viewBox="110 20 420 150" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="640" height="180" fill="#03040c"/>
+        <image class="galaxy-side-img" x="0" y="0" width="640" height="180" preserveAspectRatio="none"/>
+        <line id="sideRadiusLine" x1="320" y1="70" x2="320" y2="70" stroke="#FFB27A" stroke-width="1.6" stroke-dasharray="4 3"/>
+        <circle id="sideMarker" cx="320" cy="90" r="5.5" fill="#FFD76A" stroke="#fff" stroke-width="1.5"/>
+        <text id="sideMarkerLabel" class="gx-label" x="320" y="58" text-anchor="middle" font-size="13"></text>
+        <text class="gx-label" x="320" y="158" text-anchor="middle" font-size="11.5">은하 중심에서부터의 거리</text>
       </svg>
     </div>
 
@@ -278,7 +301,7 @@
       <button type="button" class="toggle-opt dist-preset" data-d="8.5">태양계</button>
       <button type="button" class="toggle-opt dist-preset" data-d="15">은하 가장자리</button>
     </div>
-    <p class="sim-note" style="font-size:12.5px;color:var(--ink-soft);margin-top:10px;">※ 실제 태양계는 나선팔을 따라 위치하지만, 이 시뮬레이션에서는 은하 중심에서부터의 거리만 단순화하여 보여준다.</p>
+    <p class="sim-note" style="font-size:12.5px;color:var(--ink-soft);margin-top:10px;">※ 은하 그림은 별 입자 수만 개로 그린 모식도이다. 위에서 본 모습과 옆에서 본 모습은 같은 축척으로 그렸으며, 태양계는 나선팔 위에 표시했다.</p>
   </section>
 
   <section>
@@ -384,7 +407,6 @@
   const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyvWvjHdOgmzIA3pha45ZpF1kB0duIKzch8MSod3P_kMIMiPbaYxafRYkUa6DpAbmp5/exec";
 
   const $ = (id) => document.getElementById(id);
-  const svgNS = "http://www.w3.org/2000/svg";
   function showResult(el, ok, correctMsg, wrongMsg){
     el.className = 'check-result ' + (ok ? 'correct' : 'wrong');
     el.textContent = ok ? ('✓ ' + correctMsg) : ('✗ ' + wrongMsg);
@@ -411,63 +433,225 @@
   });
 
   // ── 3. 우리은하 시뮬레이션 ──
-  function buildTopArms(){
-    const g = $('topArms');
-    const colors = ['#7FB0E0', '#7FB0E0'];
-    [0, 180].forEach((rot, i) => {
-      const path = document.createElementNS(svgNS,'path');
-      const rad = rot * Math.PI/180;
-      let d = 'M320,170 ';
-      for(let t=0; t<=1; t+=0.05){
-        const angle = rad + t*2.4;
-        const r = 20 + t*260;
-        const x = 320 + r*Math.cos(angle);
-        const y = 170 + r*Math.sin(angle)*0.4;
-        d += `L${x.toFixed(1)},${y.toFixed(1)} `;
-      }
-      path.setAttribute('d', d);
-      path.setAttribute('fill','none');
-      path.setAttribute('stroke', colors[i]);
-      path.setAttribute('stroke-width', 16);
-      path.setAttribute('stroke-linecap','round');
-      path.setAttribute('opacity', 0.35);
-      g.appendChild(path);
-    });
+  // 은하 그림: 수만 개의 별 입자를 캔버스에 찍어 막대나선 은하를 그린 뒤,
+  // 이미지로 만들어 배움 자료 그림과 시뮬레이션 SVG에 함께 쓴다.
+  // 위·옆에서 본 모습 모두 1 kpc = 12 px (반지름 15 kpc = 180 px)로 축척을 맞췄다.
+  const GAL = { cx:320, R:180, pxPerKpc:12, rBar:42, sunKpc:8.5 };
+  const TAN_PITCH = Math.tan(17 * Math.PI/180);
+  // 0번 나선팔이 태양계 위치(중심의 정확히 왼쪽, 8.5 kpc)를 지나도록 회전각을 정한다.
+  const ARM0_OFF = Math.PI - Math.log(GAL.sunKpc*GAL.pxPerKpc / GAL.rBar) / TAN_PITCH;
+  function armTheta(r, off){ return off + Math.log(r / GAL.rBar) / TAN_PITCH; }
+
+  function mulberry32(a){
+    return function(){
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      let t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
   }
-  buildTopArms();
+  function makeGauss(rand){
+    return function(){
+      let u = 0, v = 0;
+      while(u === 0) u = rand();
+      while(v === 0) v = rand();
+      return Math.sqrt(-2*Math.log(u)) * Math.cos(2*Math.PI*v);
+    };
+  }
+  function makeCanvas(w, h){
+    const s = 2;
+    const c = document.createElement('canvas');
+    c.width = w*s; c.height = h*s;
+    const g = c.getContext('2d');
+    g.scale(s, s);
+    return { c, g };
+  }
+  function fieldStars(g, w, h, n, rand){
+    for(let i=0; i<n; i++){
+      const big = rand() < 0.08;
+      g.fillStyle = `rgba(255,255,255,${0.15 + rand()*0.6})`;
+      g.fillRect(rand()*w, rand()*h, big ? 1.3 : 0.6, big ? 1.3 : 0.6);
+    }
+  }
+  function dot(g, x, y, r){ g.beginPath(); g.arc(x, y, r, 0, Math.PI*2); g.fill(); }
 
-  const GD_MIN = 0, GD_MAX = 15;
+  function renderGalaxyTop(){
+    const W = 640, H = 400, cx = GAL.cx, cy = 200, R = GAL.R;
+    const { c, g } = makeCanvas(W, H);
+    const rand = mulberry32(20261007), gauss = makeGauss(rand);
+    g.fillStyle = '#03040c'; g.fillRect(0, 0, W, H);
+    fieldStars(g, W, H, 520, rand);
+
+    g.globalCompositeOperation = 'lighter';
+    let grd = g.createRadialGradient(cx, cy, 0, cx, cy, R*1.08);
+    grd.addColorStop(0, 'rgba(255,214,160,0.40)');
+    grd.addColorStop(0.3, 'rgba(160,165,220,0.16)');
+    grd.addColorStop(1, 'rgba(60,70,140,0)');
+    g.fillStyle = grd; dot(g, cx, cy, R*1.08);
+
+    // 원반 전체에 흩어진 별(중심으로 갈수록 빽빽함)
+    for(let i=0; i<7000; i++){
+      const r = -R*0.33*Math.log(1 - rand()*0.95);
+      if(r > R*1.02) continue;
+      const th = rand()*Math.PI*2;
+      const warm = r < R*0.3;
+      g.fillStyle = warm ? `rgba(255,222,175,${0.2+rand()*0.35})` : `rgba(190,205,255,${0.12+rand()*0.28})`;
+      g.fillRect(cx + r*Math.cos(th), cy + r*Math.sin(th), 0.7, 0.7);
+    }
+
+    // 나선팔: 큰 팔 2개 + 작은 팔 2개
+    const arms = [
+      { off: ARM0_OFF,             n: 9000, w: 1 },
+      { off: ARM0_OFF + Math.PI,   n: 9000, w: 1 },
+      { off: ARM0_OFF + Math.PI/2, n: 3000,  w: 0.4 },
+      { off: ARM0_OFF + Math.PI*1.5, n: 3000, w: 0.4 }
+    ];
+    // 팔을 따라 퍼지는 은은한 빛
+    arms.slice(0, 2).forEach(a => {
+      for(let i=0; i<450; i++){
+        const t = rand();
+        const r = GAL.rBar + (R - GAL.rBar)*t;
+        const th = armTheta(r, a.off) + gauss()*0.04;
+        const rr = r + gauss()*(4 + r*0.04);
+        const alpha = 0.014 * (1 - t*t*0.8);
+        g.fillStyle = r < R*0.45 ? `rgba(255,215,170,${alpha})` : `rgba(140,165,255,${alpha})`;
+        dot(g, cx + rr*Math.cos(th), cy + rr*Math.sin(th), 9 + r*0.06);
+      }
+    });
+    arms.forEach(a => {
+      for(let i=0; i<a.n; i++){
+        const t = Math.pow(rand(), 0.85);
+        const r = GAL.rBar + (R*1.03 - GAL.rBar)*t;
+        const th = armTheta(r, a.off) + gauss()*0.05;
+        const rr = r + gauss()*(4 + r*0.08);
+        const x = cx + rr*Math.cos(th), y = cy + rr*Math.sin(th);
+        const fade = (1 - Math.pow(t, 1.6)*0.85) * a.w;
+        const p = rand();
+        if(p < 0.007){
+          g.fillStyle = `rgba(255,110,160,${0.45*fade})`; dot(g, x, y, 0.8 + rand()*1.0);
+        } else if(p < 0.06){
+          g.fillStyle = `rgba(255,255,255,${0.85*fade})`; g.fillRect(x, y, 1.3, 1.3);
+        } else {
+          g.fillStyle = `rgba(${170+rand()*60|0},${195+rand()*45|0},255,${(0.16+rand()*0.34)*fade})`;
+          g.fillRect(x, y, 0.9, 0.9);
+        }
+      }
+    });
+
+    // 중심부 막대 구조
+    for(let i=0; i<4500; i++){
+      const u = gauss()*GAL.rBar*0.55, v = gauss()*GAL.rBar*0.17;
+      const x = cx + u*Math.cos(ARM0_OFF) - v*Math.sin(ARM0_OFF);
+      const y = cy + u*Math.sin(ARM0_OFF) + v*Math.cos(ARM0_OFF);
+      g.fillStyle = `rgba(255,${195+rand()*45|0},${125+rand()*55|0},${0.22+rand()*0.35})`;
+      g.fillRect(x, y, 1, 1);
+    }
+    grd = g.createRadialGradient(cx, cy, 0, cx, cy, 72);
+    grd.addColorStop(0, 'rgba(255,248,228,0.95)');
+    grd.addColorStop(0.25, 'rgba(255,214,150,0.5)');
+    grd.addColorStop(1, 'rgba(255,170,90,0)');
+    g.fillStyle = grd; dot(g, cx, cy, 72);
+
+    // 큰 나선팔 안쪽 가장자리를 따라가는 어두운 먼지띠
+    g.globalCompositeOperation = 'source-over';
+    [ARM0_OFF, ARM0_OFF + Math.PI].forEach(off => {
+      for(let i=0; i<3200; i++){
+        const r = GAL.rBar*1.7 + (R*0.95 - GAL.rBar*1.7)*rand();
+        const th = armTheta(r, off) - 0.14 + gauss()*0.03;
+        const rr = r + gauss()*(2 + r*0.02);
+        g.fillStyle = `rgba(6,5,14,${0.05+rand()*0.08})`;
+        dot(g, cx + rr*Math.cos(th), cy + rr*Math.sin(th), 1.2 + rand()*1.8);
+      }
+    });
+    return c.toDataURL('image/png');
+  }
+
+  function renderGalaxySide(){
+    const W = 640, H = 180, cx = GAL.cx, cy = 90, L = GAL.R;
+    const { c, g } = makeCanvas(W, H);
+    const rand = mulberry32(19750412), gauss = makeGauss(rand);
+    g.fillStyle = '#03040c'; g.fillRect(0, 0, W, H);
+    fieldStars(g, W, H, 260, rand);
+
+    g.globalCompositeOperation = 'lighter';
+    g.save(); g.translate(cx, cy); g.scale(1, 0.09);
+    let grd = g.createRadialGradient(0, 0, 0, 0, 0, L*1.05);
+    grd.addColorStop(0, 'rgba(255,225,185,0.55)');
+    grd.addColorStop(0.45, 'rgba(175,190,240,0.28)');
+    grd.addColorStop(1, 'rgba(90,100,170,0)');
+    g.fillStyle = grd; dot(g, 0, 0, L*1.05);
+    g.restore();
+
+    // 납작한 원반
+    const hx = 68;
+    for(let i=0; i<15000; i++){
+      const ax = -hx*Math.log(1 - rand()*(1 - Math.exp(-L*1.02/hx)));
+      const x = cx + (rand() < 0.5 ? -ax : ax);
+      const y = cy + gauss()*(2.2 + rand()*1.4);
+      const warm = ax < 45;
+      g.fillStyle = warm ? `rgba(255,220,170,${0.22+rand()*0.35})` : `rgba(${180+rand()*50|0},${200+rand()*40|0},255,${0.18+rand()*0.38})`;
+      g.fillRect(x, y, 0.8, 0.8);
+    }
+    // 볼록한 중심부(팽대부)
+    for(let i=0; i<6500; i++){
+      const x = cx + gauss()*28, y = cy + gauss()*15;
+      g.fillStyle = `rgba(255,${200+rand()*45|0},${130+rand()*60|0},${0.18+rand()*0.32})`;
+      g.fillRect(x, y, 0.9, 0.9);
+    }
+    g.save(); g.translate(cx, cy); g.scale(1, 0.62);
+    grd = g.createRadialGradient(0, 0, 0, 0, 0, 62);
+    grd.addColorStop(0, 'rgba(255,248,228,0.95)');
+    grd.addColorStop(0.3, 'rgba(255,212,150,0.45)');
+    grd.addColorStop(1, 'rgba(255,170,90,0)');
+    g.fillStyle = grd; dot(g, 0, 0, 62);
+    g.restore();
+
+    // 원반 한가운데를 가로지르는 먼지띠
+    g.globalCompositeOperation = 'source-over';
+    const lane = g.createLinearGradient(cx - L, 0, cx + L, 0);
+    lane.addColorStop(0, 'rgba(6,5,14,0)');
+    lane.addColorStop(0.2, 'rgba(6,5,14,0.25)');
+    lane.addColorStop(0.5, 'rgba(6,5,14,0.4)');
+    lane.addColorStop(0.8, 'rgba(6,5,14,0.25)');
+    lane.addColorStop(1, 'rgba(6,5,14,0)');
+    g.fillStyle = lane; g.fillRect(cx - L, cy - 0.8, 2*L, 1.6);
+    for(let i=0; i<2200; i++){
+      const x = cx + (rand()*2 - 1)*L*0.95;
+      g.fillStyle = `rgba(6,5,14,${0.05+rand()*0.1})`;
+      dot(g, x, cy + gauss()*1.0, 0.8 + rand()*1.0);
+    }
+    return c.toDataURL('image/png');
+  }
+
+  const topImg = renderGalaxyTop(), sideImg = renderGalaxySide();
+  document.querySelectorAll('.galaxy-top-img').forEach(el => el.setAttribute('href', topImg));
+  document.querySelectorAll('.galaxy-side-img').forEach(el => el.setAttribute('href', sideImg));
+  (function placeArmLabel(){
+    const r = 150, th = armTheta(r, ARM0_OFF + Math.PI);
+    const lbl = $('figArmLabel');
+    lbl.setAttribute('x', (GAL.cx + r*Math.cos(th)).toFixed(1));
+    lbl.setAttribute('y', (430 + r*Math.sin(th)).toFixed(1));
+  })();
+
+  function galaxyLabel(d){
+    if(d === 0) return '은하 중심';
+    if(Math.abs(d - GAL.sunKpc) < 0.01) return '태양계';
+    return `${d} kpc`;
+  }
   function updateGalaxy(d){
-    const frac = (d - GD_MIN) / (GD_MAX - GD_MIN);
+    const x = GAL.cx - d*GAL.pxPerKpc;
 
-    // 위에서 본 모습: 나선팔(각도 0 방향)을 따라 바깥쪽으로 이동
-    const angle = 0 + frac*2.4;
-    const r = 20 + frac*260;
-    const tx = 320 + r*Math.cos(angle);
-    const ty = 170 + r*Math.sin(angle)*0.4;
-    $('topMarker').setAttribute('cx', tx);
-    $('topMarker').setAttribute('cy', ty);
-    $('topRadiusLine').setAttribute('x2', tx);
-    $('topRadiusLine').setAttribute('y2', ty);
-    const topLabel = $('topMarkerLabel');
-    topLabel.setAttribute('x', tx);
-    topLabel.setAttribute('y', ty - 14);
-    topLabel.textContent = d === 0 ? '은하 중심' : (Math.abs(d-8.5)<0.01 ? '태양계' : `${d} kpc`);
+    $('topMarker').setAttribute('cx', x);
+    $('topRadiusLine').setAttribute('x2', x);
+    $('topMarkerLabel').setAttribute('x', x);
+    $('topMarkerLabel').textContent = galaxyLabel(d);
 
-    // 옆에서 본 모습: 원반을 따라 수평 이동
-    const sx = 320 + frac*250*(1) ; // 오른쪽으로 이동(대칭 구조이므로 방향은 임의)
-    const sxClamped = Math.min(570, sx);
-    $('sideMarker').setAttribute('cx', sxClamped);
-    $('sideMarker').setAttribute('cy', 127);
-    $('sideRadiusLine').setAttribute('x1', sxClamped);
-    $('sideRadiusLine').setAttribute('x2', sxClamped);
-    $('sideRadiusLine').setAttribute('y1', 100);
-    $('sideRadiusLine').setAttribute('y2', 127);
-    const sideLabel = $('sideMarkerLabel');
-    sideLabel.setAttribute('x', sxClamped);
-    sideLabel.textContent = d === 0 ? '은하 중심' : (Math.abs(d-8.5)<0.01 ? '태양계' : `${d} kpc`);
+    $('sideMarker').setAttribute('cx', x);
+    $('sideRadiusLine').setAttribute('x2', x);
+    $('sideMarkerLabel').setAttribute('x', x);
+    $('sideMarkerLabel').textContent = galaxyLabel(d);
 
-    $('galaxyDistReadout').textContent = `${d} kpc`;
+    $('galaxyDistReadout').textContent = `${d} kpc (${(d*1000).toLocaleString()} pc)`;
   }
   $('galaxyDist').addEventListener('input', e => updateGalaxy(Number(e.target.value)));
   updateGalaxy(Number($('galaxyDist').value));
