@@ -17,6 +17,7 @@
 - `galaxy.html` — 은하수와 우리은하 학생용 워크시트
 - `seongdan-seongun.html` — 성단과 성운 학생용 워크시트 (우리은하 속 구상·산개 성단 분포 시뮬레이션 + 세 가지 성운 시뮬레이션 + 수소 원자 전자 들뜸 시뮬레이션, 자동 채점)
 - `expansion.html` — 팽창하는 우주 학생용 워크시트 (고무풍선 가상 실험 + 도플러 효과 3D 시뮬레이션 + 풍선 우주·허블 법칙 연동 시뮬레이션, 자동 채점)
+- `space-exploration.html` — 미래에 대한 도전, 우주 탐사 학생용 워크시트 (망원경 원리 시뮬레이션, 탐사선 카드, 인공위성 발사 게임, AI 조사 도우미). 사진·그림은 `images/space/`
 - `Code.gs` — Google Apps Script 백엔드. **모든 워크시트가 이 스크립트 하나(배포 URL 하나)를 공유**하며,
   워크시트별로 같은 스프레드시트 안의 다른 시트(탭)에 저장됩니다
   (시차 → "답안", 밝기 → "밝기_답안", 별의 색 → "별색_답안").
@@ -51,6 +52,14 @@ const APPS_SCRIPT_URL = "https://script.google.com/macros/s/여기에_배포된_
 ## 저작권 안내
 `worksheet.html`의 시뮬레이션 iframe은 사이언스제이(sciencej.cafe24.com) 제작물을 임베드합니다.
 배포 전 운영자의 임베드 사용 허락을 확인해 주세요.
+
+## AI 조사 도우미 (Gemini 무료 등급) 설정
+`space-exploration.html`의 "AI 조사 도우미"는 워크시트가 직접 Gemini를 부르지 않고, `Code.gs`(Apps Script)를 거쳐 호출합니다.
+그래서 API 키가 공개 웹페이지에 드러나지 않습니다.
+1. https://aistudio.google.com 에서 무료 API 키를 만듭니다.
+2. Apps Script [프로젝트 설정] → [스크립트 속성]에 `GEMINI_API_KEY` = (키)를 추가합니다. (선택: `GEMINI_MODEL`, 기본값 `gemini-flash-latest`)
+3. 최신 `Code.gs`를 붙여넣고 [배포] → [배포 관리] → 연필 → 새 버전으로 다시 배포합니다. (URL은 그대로)
+학생 질문과 답변 요약은 스프레드시트의 "AI조사_기록" 시트에 남습니다. 학급 전체 요청은 분당 12회로 제한됩니다.
 
 ## 다음 단계 아이디어
 - 학생용 "내 피드백 조회" 페이지 (Code.gs의 `doGet` 함수 활용)

@@ -27,6 +27,15 @@
  *    (worksheet.html, brightness.html 등)의 APPS_SCRIPT_URL 값에
  *    동일하게 붙여넣는다. (하나의 URL을 모든 워크시트가 공유)
  * 6. 처음 배포 시 Google이 권한 승인을 요구하면 승인한다.
+ *
+ * [AI 조사 도우미(Gemini) 설정 — 우주 탐사 워크시트용, 선택 사항]
+ * 1. https://aistudio.google.com 에서 무료 API 키를 만든다.
+ * 2. Apps Script 왼쪽 [프로젝트 설정(톱니바퀴)] > [스크립트 속성] > [스크립트 속성 추가]
+ *    - 속성: GEMINI_API_KEY   값: 방금 만든 키
+ *    - (선택) 속성: GEMINI_MODEL  값: 사용할 모델 이름 (비워 두면 gemini-flash-latest)
+ * 3. [배포] > [배포 관리] > 연필 아이콘 > 버전: "새 버전" > [배포]  (URL은 그대로 유지)
+ * 키는 이 스크립트 안에만 저장되므로 워크시트(공개 웹페이지)에는 드러나지 않는다.
+ * 학생 질문과 답변 요약은 "AI조사_기록" 시트에 남는다.
  */
 
 const FORMS = {
@@ -179,9 +188,132 @@ function appendDynamicRow_(sheet, data) {
   sheet.appendRow(row);
 }
 
+/* ==========================================================
+ * AI 조사 도우미 (Gemini API 무료 등급)
+ * 워크시트가 { action: "ai", mode: "ask" | "feedback", ... } 를 보내면
+ * Gemini에 물어보고 { result, text, sources } 를 돌려준다.
+ * ========================================================== */
+const AI_MAX_PER_MINUTE = 12;       // 무료 등급 분당 한도를 넘지 않도록 학급 전체 요청을 제한
+const AI_LOG_SHEET = "AI조사_기록";
+
+const AI_SYSTEM_PROMPT = [
+  "너는 경주여자중학교 3학년 과학 수업의 'AI 조사 도우미'이다.",
+  "수업 주제는 '미래에 대한 도전, 우주 탐사 — 우주 탐사의 의의와 인류에게 미치는 영향'이다.",
+  "규칙:",
+  "1. 항상 한국어로, 중학교 3학년이 이해할 수 있는 쉬운 말로 답한다.",
+  "2. 핵심만 3~5개의 짧은 항목(- 로 시작)으로 정리하고, 전체 500자를 넘기지 않는다.",
+  "3. 연도·이름·수치는 정확한 것만 쓰고, 확실하지 않으면 '확인이 필요하다'고 밝힌다.",
+  "4. 마지막 줄에 학생이 더 찾아볼 수 있는 검색어나 기관(NASA, 한국항공우주연구원 등)을 한 가지 제안한다.",
+  "5. 우주·천문·과학기술과 관계없는 질문, 개인정보, 부적절한 내용은 정중히 거절하고 수업 주제로 돌아오도록 안내한다.",
+  "6. 학생의 과제를 대신 완성해 주지 말고, 학생이 스스로 정리할 수 있도록 조사의 출발점을 제공한다."
+].join("\n");
+
+const AI_FEEDBACK_PROMPT = [
+  "너는 경주여자중학교 3학년 과학 수업의 'AI 조사 도우미'이다.",
+  "학생이 '우주 탐사의 의의와 인류에게 미치는 영향'을 조사해 정리한 글을 읽고 짧게 피드백한다.",
+  "형식: '잘한 점' 1개, '사실 확인'(틀린 내용이 있으면 바로잡고, 없으면 '특별한 오류 없음'), '보완하면 좋을 점' 1~2개.",
+  "한국어로, 중학생에게 다정하게, 전체 400자 이내로 쓴다. 학생의 글을 대신 다시 써 주지 않는다."
+].join("\n");
+
+function json_(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function aiConfig_() {
+  const props = PropertiesService.getScriptProperties();
+  return {
+    key: props.getProperty("GEMINI_API_KEY") || "",
+    model: props.getProperty("GEMINI_MODEL") || "gemini-flash-latest"
+  };
+}
+
+// 학급 전체 요청 수를 분 단위로 센다 (무료 등급 한도 보호)
+function aiAllowed_() {
+  const cache = CacheService.getScriptCache();
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(3000)) return false;
+  try {
+    const k = "ai_rpm_" + Math.floor(Date.now() / 60000);
+    const n = Number(cache.get(k) || 0);
+    if (n >= AI_MAX_PER_MINUTE) return false;
+    cache.put(k, String(n + 1), 120);
+    return true;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function callGemini_(cfg, system, userText, useSearch) {
+  const url = "https://generativelanguage.googleapis.com/v1beta/models/" +
+    encodeURIComponent(cfg.model) + ":generateContent";
+  const body = {
+    system_instruction: { parts: [{ text: system }] },
+    contents: [{ role: "user", parts: [{ text: userText }] }],
+    generationConfig: { temperature: 0.4, maxOutputTokens: 2048 }
+  };
+  if (useSearch) body.tools = [{ google_search: {} }];
+  const res = UrlFetchApp.fetch(url, {
+    method: "post",
+    contentType: "application/json",
+    headers: { "x-goog-api-key": cfg.key },
+    payload: JSON.stringify(body),
+    muteHttpExceptions: true
+  });
+  return { code: res.getResponseCode(), body: res.getContentText() };
+}
+
+function handleAi_(data) {
+  const cfg = aiConfig_();
+  if (!cfg.key) return json_({ result: "error", code: "no_key", message: "선생님이 아직 AI 기능을 설정하지 않았어요." });
+
+  const mode = data.mode === "feedback" ? "feedback" : "ask";
+  const topic = String(data.topic || "").slice(0, 60);
+  const question = String(data.question || "").trim().slice(0, 400);
+  const summary = String(data.summary || "").trim().slice(0, 1500);
+  if (mode === "ask" && !question) return json_({ result: "error", code: "empty", message: "질문을 입력해 주세요." });
+  if (mode === "feedback" && !summary) return json_({ result: "error", code: "empty", message: "먼저 조사한 내용을 정리해 주세요." });
+  if (!aiAllowed_()) return json_({ result: "error", code: "busy", message: "지금 질문이 많이 몰렸어요. 1분쯤 뒤에 다시 시도해 주세요." });
+
+  const system = mode === "ask" ? AI_SYSTEM_PROMPT : AI_FEEDBACK_PROMPT;
+  const userText = mode === "ask"
+    ? (topic ? "[조사 주제: " + topic + "]\n" : "") + question
+    : "[조사 주제: " + (topic || "자유 주제") + "]\n학생이 정리한 글:\n" + summary;
+
+  // 1순위: 구글 검색 근거(출처) 포함 → 안 되면 검색 없이 다시 시도
+  let r = callGemini_(cfg, system, userText, mode === "ask");
+  if (r.code !== 200 && r.code !== 429 && mode === "ask") r = callGemini_(cfg, system, userText, false);
+  if (r.code === 429) return json_({ result: "error", code: "busy", message: "AI 무료 사용량이 잠시 꽉 찼어요. 1분쯤 뒤에 다시 시도해 주세요." });
+  if (r.code !== 200) return json_({ result: "error", code: "api", message: "AI 응답을 받지 못했어요. (오류 " + r.code + ")" });
+
+  const out = JSON.parse(r.body);
+  const cand = (out.candidates || [])[0] || {};
+  const text = ((cand.content || {}).parts || []).map(function (p) { return p.text || ""; }).join("").trim();
+  if (!text) return json_({ result: "error", code: "blocked", message: "이 질문에는 답할 수 없어요. 수업 주제와 관련된 질문으로 바꿔 보세요." });
+
+  const sources = [];
+  ((cand.groundingMetadata || {}).groundingChunks || []).forEach(function (c) {
+    if (c.web && c.web.uri && sources.length < 5) sources.push({ title: c.web.title || c.web.uri, uri: c.web.uri });
+  });
+
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let log = ss.getSheetByName(AI_LOG_SHEET);
+    if (!log) {
+      log = ss.insertSheet(AI_LOG_SHEET);
+      log.appendRow(["시각", "반", "번호", "이름", "종류", "주제", "질문/정리한 글", "AI 답변"]);
+      log.setFrozenRows(1);
+    }
+    log.appendRow([new Date(), data.stuClass || "", data.stuNumber || "", data.name || "",
+                   mode === "ask" ? "질문" : "피드백", topic, mode === "ask" ? question : summary, text.slice(0, 1000)]);
+  } catch (logErr) { /* 기록 실패는 답변에 영향을 주지 않는다 */ }
+
+  return json_({ result: "success", text: text, sources: sources });
+}
+
 function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
+    if (data.action === "ai") return handleAi_(data);
     const formKey = resolveForm_(data.form);
     const sheet = getSheet_(formKey);
 
@@ -214,6 +346,11 @@ function doPost(e) {
  * 별도의 "피드백 조회 페이지"를 만들 때 fetch(GET)로 호출하면 된다.
  */
 function doGet(e) {
+  // 워크시트가 AI 조사 도우미를 쓸 수 있는지 확인할 때 사용
+  if (e.parameter.action === "ai_status") {
+    const cfg = aiConfig_();
+    return json_({ ai: !!cfg.key, model: cfg.key ? cfg.model : "" });
+  }
   const formKey = resolveForm_(e.parameter.form);
   const stuClass = e.parameter.stuClass || "";
   const stuNumber = e.parameter.stuNumber || "";
