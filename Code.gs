@@ -34,8 +34,9 @@
  *    - 속성: GEMINI_API_KEY   값: 방금 만든 키
  *    - GEMINI_MODEL(사용할 모델), GEMINI_SEARCH(구글 검색 출처 on/off)는 testGemini 가 자동으로 정해 준다.
  * 3. 편집기 위쪽 함수 목록에서 testGemini 를 고르고 [실행] → 권한 승인 창이 뜨면 승인한다.
- *    (외부 서비스 호출 권한을 처음 한 번 승인해야 웹 앱이 동작한다. testGemini 는 쓸 수 있는 모델 중
- *     가장 빠른 것을 찾아 GEMINI_MODEL 에 저장해 준다. 실행 로그에 "설정 완료"가 보이면 OK)
+ *    (외부 서비스 호출 권한을 처음 한 번 승인해야 웹 앱이 동작한다. testGemini 는 하루 한도가 큰
+ *     Flash Lite 모델을 우선으로, 10초 안에 답하는 모델을 골라 GEMINI_MODEL 에 저장해 준다.
+ *     실행 로그에 "설정 완료"가 보이면 OK)
  * 4. [배포] > [배포 관리] > 연필 아이콘 > 버전: "새 버전" > [배포]  (URL은 그대로 유지)
  * 키는 이 스크립트 안에만 저장되므로 워크시트(공개 웹페이지)에는 드러나지 않는다.
  * 학생 질문과 답변 요약은 "AI조사_기록" 시트에 남는다.
@@ -199,6 +200,8 @@ function appendDynamicRow_(sheet, data) {
 const AI_MAX_PER_MINUTE = 12;       // 무료 등급 분당 한도를 넘지 않도록 학급 전체 요청을 제한
 const AI_LOG_SHEET = "AI조사_기록";
 // 기본 모델이 안 될 때 차례로 시도할 무료 모델
+// 앞에 있을수록 우선 사용한다. 무료 등급의 하루 한도(RPD)는 Flash Lite 계열이 가장 크다
+// (예: 3.5 Flash Lite 500회/일, 나머지 Flash 모델은 20회/일 — AI Studio [비율 제한] 화면 기준)
 const AI_MODELS = ["gemini-flash-lite-latest", "gemini-2.5-flash-lite", "gemini-flash-latest", "gemini-2.5-flash"];
 const AI_TIME_BUDGET_MS = 25000;    // 한 질문에 다른 모델로 다시 시도하는 시간 한도
 
@@ -289,14 +292,17 @@ function testGemini() {
   }
   Logger.log("키 확인: " + cfg.key.slice(0, 3) + "… (길이 " + cfg.key.length + "자)");
   Logger.log("쓸 수 있는 모델과 응답 시간을 확인합니다…");
-  let best = null;
+  // AI_MODELS 순서(하루 한도가 큰 모델 우선)대로, 10초 안에 답하는 첫 모델을 쓴다.
+  // 10초 안에 답하는 모델이 없으면 가장 빠른 모델을 쓴다.
+  let best = null, fastest = null;
   AI_MODELS.forEach(function (m) {
     const t0 = Date.now();
     const r = callGemini_({ key: cfg.key, model: m }, "한국어로 한 문장만 답하라.", "연결 테스트입니다. 인사해 주세요.", false);
     const sec = (Date.now() - t0) / 1000;
     if (r.code === 200) {
       Logger.log("  ✅ " + m + " — " + sec.toFixed(1) + "초");
-      if (!best || sec < best.sec) best = { model: m, sec: sec };
+      if (!best && sec <= 10) best = { model: m, sec: sec };
+      if (!fastest || sec < fastest.sec) fastest = { model: m, sec: sec };
     } else {
       let msg = "";
       try { msg = (JSON.parse(r.body).error || {}).message || ""; } catch (err) { msg = r.body; }
@@ -304,6 +310,7 @@ function testGemini() {
     }
     Utilities.sleep(1500);    // 분당 요청 한도에 걸리지 않도록 잠깐 쉰다
   });
+  best = best || fastest;
   if (!best) {
     Logger.log("❌ 쓸 수 있는 모델이 없습니다. 오류 401/403이면 키를 다시 복사해 넣고, 429면 1분 뒤 다시 실행하세요.");
     return;
