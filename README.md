@@ -57,9 +57,10 @@ const APPS_SCRIPT_URL = "https://script.google.com/macros/s/여기에_배포된_
 `space-exploration.html`의 "AI 조사 도우미"는 워크시트가 직접 Gemini를 부르지 않고, `Code.gs`(Apps Script)를 거쳐 호출합니다.
 그래서 API 키가 공개 웹페이지에 드러나지 않습니다.
 1. https://aistudio.google.com 에서 무료 API 키를 만듭니다.
-2. Apps Script [프로젝트 설정] → [스크립트 속성]에 `GEMINI_API_KEY` = (키)를 추가합니다. (선택: `GEMINI_MODEL`, 기본값 `gemini-flash-latest`)
+2. Apps Script [프로젝트 설정] → [스크립트 속성]에 `GEMINI_API_KEY` = (키)를 추가합니다. (AI Studio 새 키는 `AQ.`로 시작합니다)
 3. 최신 `Code.gs`를 붙여넣고 저장한 뒤, 편집기 위쪽 함수 목록에서 `testGemini`를 골라 **[실행]** → 권한 승인. 실행 로그에 "연결 성공"이 보이면 OK.
    (외부 서비스 호출 권한을 승인하지 않으면 AI뿐 아니라 모든 워크시트 제출이 막힐 수 있습니다.)
+   testGemini는 쓸 수 있는 무료 모델의 응답 시간을 재서 가장 빠른 모델(`GEMINI_MODEL`)과 구글 검색 출처 사용 여부(`GEMINI_SEARCH`)를 스크립트 속성에 자동으로 저장합니다.
 4. [배포] → [배포 관리] → 연필 → 새 버전으로 다시 배포합니다. (URL은 그대로)
 학생 질문과 답변 요약은 스프레드시트의 "AI조사_기록" 시트에 남습니다. 학급 전체 요청은 분당 12회로 제한됩니다.
 
