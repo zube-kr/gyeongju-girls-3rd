@@ -1910,7 +1910,7 @@ const AI = (function(){
     document.querySelectorAll('#topicRow .topic').forEach(b => b.classList.toggle('active', b.dataset.topic === tp));
     $('boardTopicTag').textContent = tp || '조사한 사례';
     $('boardTopicEx').textContent = EXAMPLES[tp] || '';
-    $('aiStarters').innerHTML = [...STARTERS[''], ...(STARTERS[tp] || [])]
+    $('aiStarters').innerHTML = [...STARTERS[''], ...(tp ? STARTERS[tp] || [] : [])]
       .map(q => `<button type="button">${esc(q)}</button>`).join('');
   }
 
