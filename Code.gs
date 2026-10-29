@@ -201,8 +201,9 @@ const AI_MAX_PER_MINUTE = 12;       // 무료 등급 분당 한도를 넘지 않
 const AI_LOG_SHEET = "AI조사_기록";
 // 기본 모델이 안 될 때 차례로 시도할 무료 모델
 // 앞에 있을수록 우선 사용한다. 무료 등급의 하루 한도(RPD)는 Flash Lite 계열이 가장 크다
-// (예: 3.5 Flash Lite 500회/일, 나머지 Flash 모델은 20회/일 — AI Studio [비율 제한] 화면 기준)
-const AI_MODELS = ["gemini-flash-lite-latest", "gemini-2.5-flash-lite", "gemini-flash-latest", "gemini-2.5-flash"];
+// (예: 3.5 Flash Lite 500회/일, 3.8 Flash 20회/일 — AI Studio [비율 제한] 화면 기준)
+// 2.5 계열은 새 사용자에게 더 이상 제공되지 않아(404) 목록에서 뺐다.
+const AI_MODELS = ["gemini-flash-lite-latest", "gemini-3.5-flash-lite", "gemini-flash-latest"];
 const AI_TIME_BUDGET_MS = 25000;    // 한 질문에 다른 모델로 다시 시도하는 시간 한도
 
 const AI_SYSTEM_PROMPT = [
