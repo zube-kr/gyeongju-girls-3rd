@@ -197,6 +197,8 @@ function appendDynamicRow_(sheet, data) {
  * ========================================================== */
 const AI_MAX_PER_MINUTE = 12;       // 무료 등급 분당 한도를 넘지 않도록 학급 전체 요청을 제한
 const AI_LOG_SHEET = "AI조사_기록";
+// 기본 모델이 안 될 때 차례로 시도할 무료 모델
+const AI_FALLBACK_MODELS = ["gemini-2.5-flash", "gemini-2.5-flash-lite"];
 
 const AI_SYSTEM_PROMPT = [
   "너는 경주여자중학교 3학년 과학 수업의 'AI 조사 도우미'이다.",
@@ -287,6 +289,10 @@ function testGemini() {
     const out = JSON.parse(r.body);
     const parts = ((((out.candidates || [])[0] || {}).content || {}).parts || []);
     Logger.log("✅ 연결 성공! Gemini의 답: " + parts.map(function (p) { return p.text || ""; }).join(""));
+    const g = callGemini_(cfg, "한국어로 한 문장만 답하라.", "보이저 1호는 언제 발사되었나요?", true);
+    Logger.log(g.code === 200
+      ? "✅ 구글 검색 출처 기능도 사용할 수 있습니다."
+      : "ℹ️ 구글 검색 출처 기능은 지금 쓸 수 없습니다(오류 " + g.code + "). 워크시트는 자동으로 검색 없이 답합니다.");
     Logger.log("이제 [배포] > [배포 관리] > 연필 > 새 버전 > [배포]를 하면 워크시트에서 사용할 수 있습니다.");
   } else {
     Logger.log("❌ Gemini 오류 " + r.code + ": " + r.body.slice(0, 600));
@@ -313,11 +319,26 @@ function handleAi_(data) {
     ? (topic ? "[조사 주제: " + topic + "]\n" : "") + question
     : "[조사 주제: " + (topic || "자유 주제") + "]\n학생이 정리한 글:\n" + summary;
 
-  // 1순위: 구글 검색 근거(출처) 포함 → 안 되면 검색 없이 다시 시도
-  let r = callGemini_(cfg, system, userText, mode === "ask");
-  if (r.code !== 200 && r.code !== 429 && mode === "ask") r = callGemini_(cfg, system, userText, false);
-  if (r.code === 429) return json_({ result: "error", code: "busy", message: "AI 무료 사용량이 잠시 꽉 찼어요. 1분쯤 뒤에 다시 시도해 주세요." });
-  if (r.code !== 200) return json_({ result: "error", code: "api", message: "AI 응답을 받지 못했어요. (오류 " + r.code + ")" });
+  // 시도 순서: (구글 검색 출처 포함) → 검색 없이 → 다른 무료 모델
+  // 무료 등급은 검색 출처 기능의 한도가 0이거나 금방 차는 경우가 많아, 실패하면 10분 동안 검색 없이 답한다.
+  const cache = CacheService.getScriptCache();
+  const tries = [];
+  if (mode === "ask" && !cache.get("ai_nosearch")) tries.push({ model: cfg.model, search: true });
+  tries.push({ model: cfg.model, search: false });
+  AI_FALLBACK_MODELS.forEach(function (m) { if (m !== cfg.model) tries.push({ model: m, search: false }); });
+
+  let r = null;
+  for (let i = 0; i < tries.length; i++) {
+    r = callGemini_({ key: cfg.key, model: tries[i].model }, system, userText, tries[i].search);
+    if (r.code === 200) break;
+    if (tries[i].search) cache.put("ai_nosearch", "1", 600);
+    if (r.code === 401 || r.code === 403) break;            // 키 문제는 다른 모델로 바꿔도 같다
+  }
+  if (r.code !== 200) {
+    logAi_(data, "오류 " + r.code, topic, mode === "ask" ? question : summary, r.body.slice(0, 1000));
+    if (r.code === 429) return json_({ result: "error", code: "busy", message: "AI 무료 사용량이 잠시 꽉 찼어요. 1분쯤 뒤에 다시 시도해 주세요." });
+    return json_({ result: "error", code: "api", message: "AI 응답을 받지 못했어요. (오류 " + r.code + ")" });
+  }
 
   const out = JSON.parse(r.body);
   const cand = (out.candidates || [])[0] || {};
@@ -329,6 +350,12 @@ function handleAi_(data) {
     if (c.web && c.web.uri && sources.length < 5) sources.push({ title: c.web.title || c.web.uri, uri: c.web.uri });
   });
 
+  logAi_(data, mode === "ask" ? "질문" : "피드백", topic, mode === "ask" ? question : summary, text.slice(0, 1000));
+  return json_({ result: "success", text: text, sources: sources });
+}
+
+// 질문·답변(또는 오류 내용)을 "AI조사_기록" 시트에 남긴다
+function logAi_(data, kind, topic, input, output) {
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     let log = ss.getSheetByName(AI_LOG_SHEET);
@@ -337,11 +364,8 @@ function handleAi_(data) {
       log.appendRow(["시각", "반", "번호", "이름", "종류", "주제", "질문/정리한 글", "AI 답변"]);
       log.setFrozenRows(1);
     }
-    log.appendRow([new Date(), data.stuClass || "", data.stuNumber || "", data.name || "",
-                   mode === "ask" ? "질문" : "피드백", topic, mode === "ask" ? question : summary, text.slice(0, 1000)]);
+    log.appendRow([new Date(), data.stuClass || "", data.stuNumber || "", data.name || "", kind, topic, input, output]);
   } catch (logErr) { /* 기록 실패는 답변에 영향을 주지 않는다 */ }
-
-  return json_({ result: "success", text: text, sources: sources });
 }
 
 function doPost(e) {
