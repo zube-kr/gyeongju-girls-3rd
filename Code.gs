@@ -32,9 +32,10 @@
  * 1. https://aistudio.google.com 에서 무료 API 키를 만든다.
  * 2. Apps Script 왼쪽 [프로젝트 설정(톱니바퀴)] > [스크립트 속성] > [스크립트 속성 추가]
  *    - 속성: GEMINI_API_KEY   값: 방금 만든 키
- *    - (선택) 속성: GEMINI_MODEL  값: 사용할 모델 이름 (비워 두면 gemini-flash-latest)
+ *    - GEMINI_MODEL(사용할 모델), GEMINI_SEARCH(구글 검색 출처 on/off)는 testGemini 가 자동으로 정해 준다.
  * 3. 편집기 위쪽 함수 목록에서 testGemini 를 고르고 [실행] → 권한 승인 창이 뜨면 승인한다.
- *    (외부 서비스 호출 권한을 처음 한 번 승인해야 웹 앱이 동작한다. 실행 로그에 "연결 성공"이 보이면 OK)
+ *    (외부 서비스 호출 권한을 처음 한 번 승인해야 웹 앱이 동작한다. testGemini 는 쓸 수 있는 모델 중
+ *     가장 빠른 것을 찾아 GEMINI_MODEL 에 저장해 준다. 실행 로그에 "설정 완료"가 보이면 OK)
  * 4. [배포] > [배포 관리] > 연필 아이콘 > 버전: "새 버전" > [배포]  (URL은 그대로 유지)
  * 키는 이 스크립트 안에만 저장되므로 워크시트(공개 웹페이지)에는 드러나지 않는다.
  * 학생 질문과 답변 요약은 "AI조사_기록" 시트에 남는다.
@@ -198,7 +199,8 @@ function appendDynamicRow_(sheet, data) {
 const AI_MAX_PER_MINUTE = 12;       // 무료 등급 분당 한도를 넘지 않도록 학급 전체 요청을 제한
 const AI_LOG_SHEET = "AI조사_기록";
 // 기본 모델이 안 될 때 차례로 시도할 무료 모델
-const AI_FALLBACK_MODELS = ["gemini-2.5-flash", "gemini-2.5-flash-lite"];
+const AI_MODELS = ["gemini-flash-lite-latest", "gemini-2.5-flash-lite", "gemini-flash-latest", "gemini-2.5-flash"];
+const AI_TIME_BUDGET_MS = 25000;    // 한 질문에 다른 모델로 다시 시도하는 시간 한도
 
 const AI_SYSTEM_PROMPT = [
   "너는 경주여자중학교 3학년 과학 수업의 'AI 조사 도우미'이다.",
@@ -227,7 +229,8 @@ function aiConfig_() {
   const props = PropertiesService.getScriptProperties();
   return {
     key: (props.getProperty("GEMINI_API_KEY") || "").trim(),
-    model: (props.getProperty("GEMINI_MODEL") || "gemini-flash-latest").trim()
+    model: (props.getProperty("GEMINI_MODEL") || AI_MODELS[0]).trim(),
+    search: (props.getProperty("GEMINI_SEARCH") || "").trim() === "on"
   };
 }
 
@@ -253,7 +256,7 @@ function callGemini_(cfg, system, userText, useSearch) {
   const body = {
     system_instruction: { parts: [{ text: system }] },
     contents: [{ role: "user", parts: [{ text: userText }] }],
-    generationConfig: { temperature: 0.4, maxOutputTokens: 2048 }
+    generationConfig: { temperature: 0.4, maxOutputTokens: 1024 }
   };
   if (useSearch) body.tools = [{ google_search: {} }];
   const send = function (withHeader) {
@@ -278,28 +281,43 @@ function callGemini_(cfg, system, userText, useSearch) {
  * - 아래 [실행 로그]에 키 설정과 Gemini 연결 결과가 표시됩니다.
  */
 function testGemini() {
+  const props = PropertiesService.getScriptProperties();
   const cfg = aiConfig_();
   if (!cfg.key) {
     Logger.log("❌ 스크립트 속성 GEMINI_API_KEY 를 찾지 못했습니다. [프로젝트 설정] > [스크립트 속성]에서 이름(대소문자)을 확인하세요.");
     return;
   }
-  Logger.log("키 확인: " + cfg.key.slice(0, 3) + "… (길이 " + cfg.key.length + "자), 모델: " + cfg.model);
-  const r = callGemini_(cfg, "한국어로 한 문장만 답하라.", "연결 테스트입니다. 인사해 주세요.", false);
-  if (r.code === 200) {
-    const out = JSON.parse(r.body);
-    const parts = ((((out.candidates || [])[0] || {}).content || {}).parts || []);
-    Logger.log("✅ 연결 성공! Gemini의 답: " + parts.map(function (p) { return p.text || ""; }).join(""));
-    const g = callGemini_(cfg, "한국어로 한 문장만 답하라.", "보이저 1호는 언제 발사되었나요?", true);
-    Logger.log(g.code === 200
-      ? "✅ 구글 검색 출처 기능도 사용할 수 있습니다."
-      : "ℹ️ 구글 검색 출처 기능은 지금 쓸 수 없습니다(오류 " + g.code + "). 워크시트는 자동으로 검색 없이 답합니다.");
-    Logger.log("이제 [배포] > [배포 관리] > 연필 > 새 버전 > [배포]를 하면 워크시트에서 사용할 수 있습니다.");
-  } else {
-    Logger.log("❌ Gemini 오류 " + r.code + ": " + r.body.slice(0, 600));
-    if (r.code === 404) Logger.log("→ 모델 이름 문제일 수 있습니다. 스크립트 속성 GEMINI_MODEL 에 gemini-2.5-flash 등을 넣어 보세요.");
-    if (r.code === 400 || r.code === 401 || r.code === 403) Logger.log("→ 키 값이 정확한지(앞뒤 공백 없이 전체 복사) 확인하세요.");
-    if (r.code === 429) Logger.log("→ 무료 사용량이 잠시 꽉 찼습니다. 1분 뒤 다시 실행해 보세요.");
+  Logger.log("키 확인: " + cfg.key.slice(0, 3) + "… (길이 " + cfg.key.length + "자)");
+  Logger.log("쓸 수 있는 모델과 응답 시간을 확인합니다…");
+  let best = null;
+  AI_MODELS.forEach(function (m) {
+    const t0 = Date.now();
+    const r = callGemini_({ key: cfg.key, model: m }, "한국어로 한 문장만 답하라.", "연결 테스트입니다. 인사해 주세요.", false);
+    const sec = (Date.now() - t0) / 1000;
+    if (r.code === 200) {
+      Logger.log("  ✅ " + m + " — " + sec.toFixed(1) + "초");
+      if (!best || sec < best.sec) best = { model: m, sec: sec };
+    } else {
+      let msg = "";
+      try { msg = (JSON.parse(r.body).error || {}).message || ""; } catch (err) { msg = r.body; }
+      Logger.log("  ❌ " + m + " — 오류 " + r.code + " " + String(msg).slice(0, 160));
+    }
+    Utilities.sleep(1500);    // 분당 요청 한도에 걸리지 않도록 잠깐 쉰다
+  });
+  if (!best) {
+    Logger.log("❌ 쓸 수 있는 모델이 없습니다. 오류 401/403이면 키를 다시 복사해 넣고, 429면 1분 뒤 다시 실행하세요.");
+    return;
   }
+  props.setProperty("GEMINI_MODEL", best.model);
+  const t1 = Date.now();
+  const g = callGemini_({ key: cfg.key, model: best.model }, "한국어로 한 문장만 답하라.", "보이저 1호는 언제 발사되었나요?", true);
+  const gsec = (Date.now() - t1) / 1000;
+  const searchOk = g.code === 200 && gsec < 15;
+  props.setProperty("GEMINI_SEARCH", searchOk ? "on" : "off");
+  Logger.log(searchOk
+    ? "✅ 구글 검색 출처 기능 사용 (" + gsec.toFixed(1) + "초)"
+    : "ℹ️ 구글 검색 출처 기능은 " + (g.code === 200 ? "너무 느려서(" + gsec.toFixed(1) + "초)" : "쓸 수 없어서(오류 " + g.code + ")") + " 끕니다. 출처 링크 없이 답합니다.");
+  Logger.log("✅ 설정 완료: 모델 " + best.model + " (" + best.sec.toFixed(1) + "초). 워크시트를 새로고침하면 바로 적용됩니다.");
 }
 
 function handleAi_(data) {
@@ -323,12 +341,14 @@ function handleAi_(data) {
   // 무료 등급은 검색 출처 기능의 한도가 0이거나 금방 차는 경우가 많아, 실패하면 10분 동안 검색 없이 답한다.
   const cache = CacheService.getScriptCache();
   const tries = [];
-  if (mode === "ask" && !cache.get("ai_nosearch")) tries.push({ model: cfg.model, search: true });
+  if (mode === "ask" && cfg.search && !cache.get("ai_nosearch")) tries.push({ model: cfg.model, search: true });
   tries.push({ model: cfg.model, search: false });
-  AI_FALLBACK_MODELS.forEach(function (m) { if (m !== cfg.model) tries.push({ model: m, search: false }); });
+  AI_MODELS.forEach(function (m) { if (m !== cfg.model) tries.push({ model: m, search: false }); });
 
+  const started = Date.now();
   let r = null;
   for (let i = 0; i < tries.length; i++) {
+    if (i > 0 && Date.now() - started > AI_TIME_BUDGET_MS) break;   // 너무 오래 걸리면 그만 기다린다
     r = callGemini_({ key: cfg.key, model: tries[i].model }, system, userText, tries[i].search);
     if (r.code === 200) break;
     if (tries[i].search) cache.put("ai_nosearch", "1", 600);
@@ -407,7 +427,7 @@ function doGet(e) {
   // 워크시트가 AI 조사 도우미를 쓸 수 있는지 확인할 때 사용
   if (e.parameter.action === "ai_status") {
     const cfg = aiConfig_();
-    return json_({ ai: !!cfg.key, model: cfg.key ? cfg.model : "" });
+    return json_({ ai: !!cfg.key, model: cfg.key ? cfg.model : "", search: cfg.search });
   }
   const formKey = resolveForm_(e.parameter.form);
   const stuClass = e.parameter.stuClass || "";

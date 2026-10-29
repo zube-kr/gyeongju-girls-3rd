@@ -1855,9 +1855,20 @@ const AI = (function(){
   function student(){ return { stuClass:$('ws-class').value.trim(), stuNumber:$('ws-number').value.trim(), name:$('ws-name').value.trim() }; }
   function updateCount(){ $('aiCount').textContent = ready ? `남은 질문 ${MAX_Q - used} / ${MAX_Q}` : ''; }
 
-  async function call(body){
-    const res = await fetch(APPS_SCRIPT_URL, { method:'POST', headers:{ 'Content-Type':'text/plain;charset=utf-8' }, body:JSON.stringify(body) });
-    return res.json();
+  // 60초가 지나도 답이 없으면 기다리기를 멈춘다
+  async function call(body, onTick){
+    const ctrl = new AbortController(), t0 = Date.now();
+    const timer = setInterval(() => onTick && onTick(Math.floor((Date.now() - t0)/1000)), 1000);
+    const stop = setTimeout(() => ctrl.abort(), 60000);
+    try{
+      const res = await fetch(APPS_SCRIPT_URL, { method:'POST', headers:{ 'Content-Type':'text/plain;charset=utf-8' }, body:JSON.stringify(body), signal:ctrl.signal });
+      return await res.json();
+    }catch(err){
+      if(err.name === 'AbortError') return { result:'error', message:'AI의 답이 너무 오래 걸려서 멈췄어요. 잠시 뒤 다시 질문해 주세요.' };
+      throw err;
+    }finally{
+      clearInterval(timer); clearTimeout(stop);
+    }
   }
 
   async function ask(q){
@@ -1870,7 +1881,8 @@ const AI = (function(){
     $('aiQ').value = '';
     const wait = bubble('bot', '<span class="ai-typing">조사하는 중</span>');
     try{
-      const r = await call({ action:'ai', mode:'ask', topic, question:q, ...student() });
+      const r = await call({ action:'ai', mode:'ask', topic, question:q, ...student() },
+        s => { wait.innerHTML = `<span class="ai-typing">조사하는 중 (${s}초)</span>`; });
       if(r.result === 'success'){
         used++;
         const src = (r.sources || []).map(s => `<a href="${esc(s.uri)}" target="_blank" rel="noopener noreferrer">${esc(s.title)}</a>`).join('');
@@ -1896,7 +1908,8 @@ const AI = (function(){
     box.innerHTML = '<span class="ai-typing">AI가 정리한 글을 읽는 중</span>';
     try{
       const summary = `우주 탐사의 의의: ${meaning}\n${topic || '조사 내용'}: ${body}`;
-      const r = await call({ action:'ai', mode:'feedback', topic, summary, ...student() });
+      const r = await call({ action:'ai', mode:'feedback', topic, summary, ...student() },
+        s => { box.innerHTML = `<span class="ai-typing">AI가 정리한 글을 읽는 중 (${s}초)</span>`; });
       box.innerHTML = r.result === 'success' ? `<b>✦ AI 피드백</b>${format(r.text)}` : esc(r.message || 'AI 응답을 받지 못했어요.');
     }catch(err){
       box.textContent = 'AI 조사 도우미에 연결하지 못했어요.';
@@ -1923,7 +1936,7 @@ const AI = (function(){
 
   // 선생님이 Code.gs에 Gemini 키를 설정했는지 확인
   fetch(APPS_SCRIPT_URL + '?action=ai_status').then(r => r.json()).then(r => {
-    if(r && r.ai === true){ ready = true; $('aiState').textContent = 'Gemini 연결됨 · 구글 검색 출처와 함께 답해요'; }
+    if(r && r.ai === true){ ready = true; $('aiState').textContent = r.search ? 'Gemini 연결됨 · 구글 검색 출처와 함께 답해요' : 'Gemini 연결됨'; }
     else if(r && r.ai === false){ $('aiState').textContent = '선생님이 아직 AI 키를 설정하지 않았어요'; }
     else { $('aiState').textContent = '선생님이 Code.gs를 업데이트하면 사용할 수 있어요'; }
     updateCount();
