@@ -33,7 +33,9 @@
  * 2. Apps Script 왼쪽 [프로젝트 설정(톱니바퀴)] > [스크립트 속성] > [스크립트 속성 추가]
  *    - 속성: GEMINI_API_KEY   값: 방금 만든 키
  *    - (선택) 속성: GEMINI_MODEL  값: 사용할 모델 이름 (비워 두면 gemini-flash-latest)
- * 3. [배포] > [배포 관리] > 연필 아이콘 > 버전: "새 버전" > [배포]  (URL은 그대로 유지)
+ * 3. 편집기 위쪽 함수 목록에서 testGemini 를 고르고 [실행] → 권한 승인 창이 뜨면 승인한다.
+ *    (외부 서비스 호출 권한을 처음 한 번 승인해야 웹 앱이 동작한다. 실행 로그에 "연결 성공"이 보이면 OK)
+ * 4. [배포] > [배포 관리] > 연필 아이콘 > 버전: "새 버전" > [배포]  (URL은 그대로 유지)
  * 키는 이 스크립트 안에만 저장되므로 워크시트(공개 웹페이지)에는 드러나지 않는다.
  * 학생 질문과 답변 요약은 "AI조사_기록" 시트에 남는다.
  */
@@ -222,8 +224,8 @@ function json_(obj) {
 function aiConfig_() {
   const props = PropertiesService.getScriptProperties();
   return {
-    key: props.getProperty("GEMINI_API_KEY") || "",
-    model: props.getProperty("GEMINI_MODEL") || "gemini-flash-latest"
+    key: (props.getProperty("GEMINI_API_KEY") || "").trim(),
+    model: (props.getProperty("GEMINI_MODEL") || "gemini-flash-latest").trim()
   };
 }
 
@@ -252,14 +254,46 @@ function callGemini_(cfg, system, userText, useSearch) {
     generationConfig: { temperature: 0.4, maxOutputTokens: 2048 }
   };
   if (useSearch) body.tools = [{ google_search: {} }];
-  const res = UrlFetchApp.fetch(url, {
-    method: "post",
-    contentType: "application/json",
-    headers: { "x-goog-api-key": cfg.key },
-    payload: JSON.stringify(body),
-    muteHttpExceptions: true
-  });
-  return { code: res.getResponseCode(), body: res.getContentText() };
+  const send = function (withHeader) {
+    const res = UrlFetchApp.fetch(withHeader ? url : url + "?key=" + encodeURIComponent(cfg.key), {
+      method: "post",
+      contentType: "application/json",
+      headers: withHeader ? { "x-goog-api-key": cfg.key } : {},
+      payload: JSON.stringify(body),
+      muteHttpExceptions: true
+    });
+    return { code: res.getResponseCode(), body: res.getContentText() };
+  };
+  let r = send(true);
+  // 키를 헤더로 받지 않는 경우를 대비해 주소(?key=)로 한 번 더 시도
+  if ((r.code === 400 || r.code === 401 || r.code === 403) && /API[_ ]?key/i.test(r.body)) r = send(false);
+  return r;
+}
+
+/**
+ * [선생님용 점검] Apps Script 편집기에서 이 함수를 골라 [실행]하세요.
+ * - 처음 실행하면 권한 승인 창이 뜹니다 → 승인해야 AI 조사 도우미가 동작합니다.
+ * - 아래 [실행 로그]에 키 설정과 Gemini 연결 결과가 표시됩니다.
+ */
+function testGemini() {
+  const cfg = aiConfig_();
+  if (!cfg.key) {
+    Logger.log("❌ 스크립트 속성 GEMINI_API_KEY 를 찾지 못했습니다. [프로젝트 설정] > [스크립트 속성]에서 이름(대소문자)을 확인하세요.");
+    return;
+  }
+  Logger.log("키 확인: " + cfg.key.slice(0, 3) + "… (길이 " + cfg.key.length + "자), 모델: " + cfg.model);
+  const r = callGemini_(cfg, "한국어로 한 문장만 답하라.", "연결 테스트입니다. 인사해 주세요.", false);
+  if (r.code === 200) {
+    const out = JSON.parse(r.body);
+    const parts = ((((out.candidates || [])[0] || {}).content || {}).parts || []);
+    Logger.log("✅ 연결 성공! Gemini의 답: " + parts.map(function (p) { return p.text || ""; }).join(""));
+    Logger.log("이제 [배포] > [배포 관리] > 연필 > 새 버전 > [배포]를 하면 워크시트에서 사용할 수 있습니다.");
+  } else {
+    Logger.log("❌ Gemini 오류 " + r.code + ": " + r.body.slice(0, 600));
+    if (r.code === 404) Logger.log("→ 모델 이름 문제일 수 있습니다. 스크립트 속성 GEMINI_MODEL 에 gemini-2.5-flash 등을 넣어 보세요.");
+    if (r.code === 400 || r.code === 401 || r.code === 403) Logger.log("→ 키 값이 정확한지(앞뒤 공백 없이 전체 복사) 확인하세요.");
+    if (r.code === 429) Logger.log("→ 무료 사용량이 잠시 꽉 찼습니다. 1분 뒤 다시 실행해 보세요.");
+  }
 }
 
 function handleAi_(data) {

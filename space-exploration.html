@@ -1927,7 +1927,7 @@ const AI = (function(){
     else if(r && r.ai === false){ $('aiState').textContent = '선생님이 아직 AI 키를 설정하지 않았어요'; }
     else { $('aiState').textContent = '선생님이 Code.gs를 업데이트하면 사용할 수 있어요'; }
     updateCount();
-  }).catch(() => { $('aiState').textContent = '지금은 연결할 수 없어요 (인터넷 연결 확인)'; });
+  }).catch(() => { $('aiState').textContent = '연결할 수 없어요 — 인터넷 연결을 확인하거나, 선생님이 Apps Script에서 testGemini를 실행해 권한을 승인해야 해요'; });
 
   return { topic:() => topic, used:() => used };
 })();
