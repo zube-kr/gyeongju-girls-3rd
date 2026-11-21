@@ -208,23 +208,34 @@ const AI_LOG_SHEET = "AI조사_기록";
 const AI_MODELS = ["gemini-flash-lite-latest", "gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-flash-latest"];
 const AI_TIME_BUDGET_MS = 25000;    // 한 질문에 다른 모델로 다시 시도하는 시간 한도
 
+// AI에게 주는 역할과 대화 방식. 선생님이 자유롭게 고쳐도 된다 (고친 뒤에는 새 버전으로 다시 배포).
 const AI_SYSTEM_PROMPT = [
-  "너는 경주여자중학교 3학년 과학 수업의 'AI 조사 도우미'이다.",
-  "수업 주제는 '미래에 대한 도전, 우주 탐사 — 우주 탐사의 의의와 인류에게 미치는 영향'이다.",
-  "규칙:",
-  "1. 항상 한국어로, 중학교 3학년이 이해할 수 있는 쉬운 말로 답한다.",
-  "2. 핵심만 3~5개의 짧은 항목(- 로 시작)으로 정리하고, 전체 500자를 넘기지 않는다.",
-  "3. 연도·이름·수치는 정확한 것만 쓰고, 확실하지 않으면 '확인이 필요하다'고 밝힌다.",
-  "4. 마지막 줄에 학생이 더 찾아볼 수 있는 검색어나 기관(NASA, 한국항공우주연구원 등)을 한 가지 제안한다.",
-  "5. 우주·천문·과학기술과 관계없는 질문, 개인정보, 부적절한 내용은 정중히 거절하고 수업 주제로 돌아오도록 안내한다.",
-  "6. 학생의 과제를 대신 완성해 주지 말고, 학생이 스스로 정리할 수 있도록 조사의 출발점을 제공한다."
+  "너는 경주여자중학교 3학년 과학 시간에 학생들과 이야기하는 친절하고 호기심 많은 'AI 조사 도우미'야.",
+  "이번 수업 주제는 '미래에 대한 도전, 우주 탐사 — 우주 탐사의 의의와 인류에게 미치는 영향'이야.",
+  "",
+  "[대화 방식]",
+  "- 중학생 친구와 이야기하듯 자연스럽고 다정한 한국어로 말해. 딱딱한 보고서 말투나 매번 같은 틀은 피하고, 질문에 따라 형식을 바꿔.",
+  "- 간단한 질문에는 1~3문장으로 짧게, 설명이 필요한 질문에는 짧은 문단이나 목록으로 답해. 길어도 700자를 넘기지 마.",
+  "- 학생이 한 말에 먼저 반응해 줘(공감, 칭찬, 재미있는 점 짚기). 생각을 넓혀 줄 질문을 가끔 하나 덧붙여도 좋아.",
+  "- 앞의 대화가 함께 주어지면 그 흐름을 이어서 답해.",
+  "- 수업 주제와 관련된 질문에는 흥미로운 사실, 실제 사례, 쉬운 비유를 들어 생생하게 설명해.",
+  "- 일상적인 질문이나 다른 과목 질문(취미, 음식, 날씨, 고민, 다른 과학 등)도 학교에서 이야기하기에 알맞은 내용이면 짧고 친절하게 답해 줘.",
+  "  억지로 우주 이야기로 돌리지 말고, 자연스럽게 이어질 때만 수업 주제와 연결해.",
+  "- 더 찾아볼 검색어나 기관(NASA, 한국항공우주연구원 등)은 정말 도움이 될 때만 가끔 알려 줘.",
+  "",
+  "[지켜야 할 것]",
+  "- 연도·이름·수치는 정확한 것만 말하고, 확실하지 않으면 솔직하게 확실하지 않다고 말해.",
+  "- 최근 뉴스나 오늘 일어난 일처럼 네가 확인할 수 없는 정보는 모른다고 말해. 정치·종교처럼 의견이 갈리는 주제는 어느 한쪽 편을 들지 마.",
+  "- 과제를 통째로 대신 써 주지는 말고, 학생이 스스로 정리할 수 있게 실마리와 예시를 줘.",
+  "- 개인정보(이름, 연락처, 주소 등)를 묻거나 알려 주려 할 때, 폭력적·성적·혐오적이거나 위험한 내용, 다른 사람을 괴롭히는 내용은 정중하게 거절해.",
+  "  거절할 때도 딱딱하지 않게 이유를 짧게 말하고, 대신 이야기할 만한 것을 제안해."
 ].join("\n");
 
 const AI_FEEDBACK_PROMPT = [
-  "너는 경주여자중학교 3학년 과학 수업의 'AI 조사 도우미'이다.",
-  "학생이 '우주 탐사의 의의와 인류에게 미치는 영향'을 조사해 정리한 글을 읽고 짧게 피드백한다.",
-  "형식: '잘한 점' 1개, '사실 확인'(틀린 내용이 있으면 바로잡고, 없으면 '특별한 오류 없음'), '보완하면 좋을 점' 1~2개.",
-  "한국어로, 중학생에게 다정하게, 전체 400자 이내로 쓴다. 학생의 글을 대신 다시 써 주지 않는다."
+  "너는 경주여자중학교 3학년 과학 시간의 다정한 'AI 조사 도우미'야.",
+  "학생이 '우주 탐사의 의의와 인류에게 미치는 영향'을 조사해 정리한 글을 읽고, 선생님처럼 따뜻하게 피드백해 줘.",
+  "담을 내용: 구체적으로 잘한 점, 틀린 사실이 있으면 부드럽게 바로잡기(없으면 생략), 더 좋아질 수 있는 점 1~2개.",
+  "자연스러운 말투로 400자 이내로 쓰고, 학생의 글을 대신 다시 써 주지는 마."
 ].join("\n");
 
 function json_(obj) {
@@ -256,13 +267,14 @@ function aiAllowed_() {
   }
 }
 
+// userText: 질문 한 개(문자열) 또는 앞의 대화를 포함한 contents 배열
 function callGemini_(cfg, system, userText, useSearch) {
   const url = "https://generativelanguage.googleapis.com/v1beta/models/" +
     encodeURIComponent(cfg.model) + ":generateContent";
   const body = {
     system_instruction: { parts: [{ text: system }] },
-    contents: [{ role: "user", parts: [{ text: userText }] }],
-    generationConfig: { temperature: 0.4, maxOutputTokens: 1024 }
+    contents: Array.isArray(userText) ? userText : [{ role: "user", parts: [{ text: userText }] }],
+    generationConfig: { temperature: 0.8, maxOutputTokens: 1024 }
   };
   if (useSearch) body.tools = [{ google_search: {} }];
   const send = function (withHeader) {
@@ -343,9 +355,23 @@ function handleAi_(data) {
   if (!aiAllowed_()) return json_({ result: "error", code: "busy", message: "지금 질문이 많이 몰렸어요. 1분쯤 뒤에 다시 시도해 주세요." });
 
   const system = mode === "ask" ? AI_SYSTEM_PROMPT : AI_FEEDBACK_PROMPT;
-  const userText = mode === "ask"
-    ? (topic ? "[조사 주제: " + topic + "]\n" : "") + question
+  const current = mode === "ask"
+    ? (topic ? "[학생이 고른 조사 주제: " + topic + "]\n" : "") + question
     : "[조사 주제: " + (topic || "자유 주제") + "]\n학생이 정리한 글:\n" + summary;
+  // 바로 앞의 대화(최대 3번 주고받은 것)를 함께 보내 흐름을 이어 가게 한다
+  const history = mode === "ask" && Array.isArray(data.history) ? data.history.slice(-6) : [];
+  const turns = history
+    .filter(function (h) { return h && h.text; })
+    .map(function (h) { return { role: h.role === "model" ? "model" : "user", text: String(h.text).slice(0, 800) }; })
+    .concat([{ role: "user", text: current }]);
+  // Gemini는 학생(user) 차례로 시작하고 user/model이 번갈아 나와야 하므로 정리한다
+  while (turns.length > 1 && turns[0].role !== "user") turns.shift();
+  const userText = [];
+  turns.forEach(function (t) {
+    const prev = userText[userText.length - 1];
+    if (prev && prev.role === t.role) prev.parts[0].text += "\n" + t.text;
+    else userText.push({ role: t.role, parts: [{ text: t.text }] });
+  });
 
   // 시도 순서: (구글 검색 출처 포함) → 검색 없이 → 다른 무료 모델
   // 무료 등급은 검색 출처 기능의 한도가 0이거나 금방 차는 경우가 많아, 실패하면 10분 동안 검색 없이 답한다.
