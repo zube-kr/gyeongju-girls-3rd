@@ -628,7 +628,7 @@
       </div>
       <div class="ai-starters" id="aiStarters"></div>
       <div class="ai-log" id="aiLog">
-        <div class="ai-msg bot">안녕하세요! 우주 탐사에 대해 궁금한 것을 물어보세요. 위에서 주제를 고르면 질문 예시가 나타나요.<br><small>AI의 답에도 틀린 내용이 있을 수 있으니, 출처를 확인하고 내 말로 정리해요. 이름·연락처 같은 개인 정보는 입력하지 마세요.</small></div>
+        <div class="ai-msg bot">안녕! 나는 우주 탐사 조사를 도와줄 AI야. 궁금한 건 편하게 물어봐 — 앞에서 한 이야기도 기억하고 이어서 대답할게. 위에서 주제를 고르면 질문 예시도 나타나요.<br><small>AI의 답에도 틀린 내용이 있을 수 있으니, 출처를 확인하고 내 말로 정리해요. 이름·연락처 같은 개인 정보는 입력하지 마세요.</small></div>
       </div>
       <div class="ai-input">
         <input type="text" id="aiQ" maxlength="300" placeholder="예) 우주 기술이 적용된 생활용품을 알려 줘">
@@ -1817,6 +1817,7 @@ const GAME = (function(){
 const AI = (function(){
   const MAX_Q = 10;
   let used = 0, ready = false, busy = false, topic = '';
+  const history = [];   // 앞의 대화를 기억해서 자연스럽게 이어 가도록 함께 보낸다
   const STARTERS = {
     '': ['우주 탐사의 의의를 중학생 눈높이로 알려 줘', '우주 탐사가 인류에게 미친 영향은?'],
     '우리 생활에 적용된 우주 기술': ['우주 기술이 적용된 생활용품 3가지를 알려 줘', '화재경보기는 우주 탐사와 어떤 관련이 있어?', '인공위성은 우리 생활 어디에 쓰여?'],
@@ -1879,12 +1880,13 @@ const AI = (function(){
     busy = true; $('aiSend').disabled = true;
     bubble('me', esc(q));
     $('aiQ').value = '';
-    const wait = bubble('bot', '<span class="ai-typing">조사하는 중</span>');
+    const wait = bubble('bot', '<span class="ai-typing">생각하는 중</span>');
     try{
-      const r = await call({ action:'ai', mode:'ask', topic, question:q, ...student() },
-        s => { wait.innerHTML = `<span class="ai-typing">조사하는 중 (${s}초)</span>`; });
+      const r = await call({ action:'ai', mode:'ask', topic, question:q, history:history.slice(-6), ...student() },
+        s => { wait.innerHTML = `<span class="ai-typing">생각하는 중 (${s}초)</span>`; });
       if(r.result === 'success'){
         used++;
+        history.push({ role:'user', text:q }, { role:'model', text:r.text });
         const src = (r.sources || []).map(s => `<a href="${esc(s.uri)}" target="_blank" rel="noopener noreferrer">${esc(s.title)}</a>`).join('');
         wait.innerHTML = format(r.text) + (src ? `<div class="ai-src">출처: ${src}</div>` : '') + '<small>AI의 답은 틀릴 수 있어요. 출처를 확인하고 내 말로 정리해요.</small>';
       } else {
